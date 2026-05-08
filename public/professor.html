@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 0.1 — Professor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--text:#e6edf3;--muted:#7d8590;--accent:#58a6ff;--green:#3fb950;--amber:#d29922;--red:#f85149;--purple:#a371f7;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;display:flex;height:100vh;overflow:hidden;}
+
+/* ── Sidebar ── */
+.sidebar{width:260px;min-width:260px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
+.logo .badge{background:var(--accent);color:#0d1117;font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:3px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px;display:inline-block;}
+.logo h1{font-size:13px;font-weight:600;line-height:1.4;}
+.logo p{font-size:11px;color:var(--muted);margin-top:3px;}
+.nav{padding:10px 0;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--muted);padding:8px 16px 4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.bloco-nav{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;}
+.bloco-nav:hover{background:var(--bg3);}
+.bloco-nav.liberado{border-color:var(--green);}
+.bloco-nav.atual{background:var(--bg3);border-color:var(--accent);}
+.bloco-nav.bloqueado{opacity:.4;cursor:default;}
+.bloco-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);width:18px;flex-shrink:0;}
+.bloco-info{flex:1;}
+.bloco-info h4{font-size:11px;font-weight:500;}
+.bloco-info p{font-size:10px;color:var(--muted);}
+.bloco-status{font-size:10px;font-family:'IBM Plex Mono',monospace;}
+.status-ok{color:var(--green);}
+.status-curr{color:var(--accent);}
+.prog-bar{height:2px;background:var(--border);}
+.prog-fill{height:100%;background:var(--accent);transition:width .3s;}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── Topbar ── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-left h2{font-size:13px;font-weight:600;}
+.topbar-left p{font-size:11px;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.timer{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;color:var(--accent);cursor:pointer;padding:3px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;}
+.btn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--text);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s;}
+.btn:hover{background:var(--bg3);}
+.btn-primary{background:var(--accent);color:#0d1117;border-color:var(--accent);font-weight:600;}
+.btn-primary:hover{opacity:.85;background:var(--accent);}
+.btn-green{background:var(--green);color:#0d1117;border-color:var(--green);font-weight:600;}
+.btn-green:hover{opacity:.85;}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red);font-weight:600;}
+.btn-red:hover{opacity:.85;}
+.ws-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:3px;border:1px solid var(--border);}
+.ws-ok{color:var(--green);border-color:var(--green);}
+.ws-err{color:var(--red);border-color:var(--red);}
+.ws-conn{color:var(--amber);border-color:var(--amber);}
+
+/* ── Activity Bar ── */
+.activity-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.activity-bar-label{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-right:4px;}
+.act-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.act-btn:hover{border-color:var(--muted);}
+.act-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08);}
+.act-btn.disabled{opacity:.4;cursor:not-allowed;}
+.act-btn.act-encerrar{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.06);}
+.act-btn.act-encerrar:hover{background:rgba(248,81,73,.12);}
+.act-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+
+/* ── Activity Panel ── */
+.activity-panel{background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:max-height .3s ease;}
+.activity-panel.closed{max-height:0;}
+.activity-panel.open{max-height:600px;}
+
+/* ── Mode: Pergunta ── */
+.mode-pergunta{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.perg-input-row{display:flex;gap:8px;}
+.perg-input-row input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:13px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;}
+.perg-input-row input:focus{outline:none;border-color:var(--accent);}
+.perg-status{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.perg-status span{color:var(--accent);}
+
+/* ── Responses List ── */
+.respostas-panel{background:var(--bg2);border-radius:8px;overflow:hidden;}
+.respostas-header{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.respostas-header span{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.respostas-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);}
+.respostas-list{max-height:160px;overflow-y:auto;padding:4px 0;}
+.resp-row{display:flex;align-items:baseline;gap:10px;padding:6px 14px;border-bottom:1px solid rgba(48,54,61,.6);}
+.resp-row:last-child{border:none;}
+.resp-row-nome{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);min-width:90px;flex-shrink:0;}
+.resp-row-texto{font-size:12px;color:var(--text);line-height:1.4;}
+.respostas-empty{padding:20px;text-align:center;font-size:11px;color:var(--muted);}
+
+/* ── Reveal Row ── */
+.reveal-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.reveal-label{font-size:11px;color:var(--muted);}
+.btn-ia{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:11px;color:var(--muted);cursor:not-allowed;font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;gap:6px;opacity:.5;}
+.btn-ia-tag{font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;}
+.btn-bolhas{background:var(--purple);color:#fff;border:none;border-radius:6px;padding:6px 16px;font-size:11px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;gap:6px;transition:opacity .2s;}
+.btn-bolhas:hover{opacity:.85;}
+.btn-fechar-bolhas{background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.btn-fechar-bolhas:hover{border-color:var(--red);color:var(--red);}
+
+/* ── Mode: Quiz ── */
+.mode-quiz{padding:16px 20px;}
+.quiz-form{display:grid;gap:12px;}
+.quiz-pergunta-input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;width:100%;}
+.quiz-pergunta-input:focus{outline:none;border-color:var(--accent);}
+.quiz-opcoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.quiz-opcao{display:flex;align-items:center;gap:8px;}
+.opcao-letra{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.letra-a{background:#1368ce;color:#fff;}
+.letra-b{background:#d89e00;color:#fff;}
+.letra-c{background:#26890c;color:#fff;}
+.letra-d{background:#e21b3c;color:#fff;}
+.opcao-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;}
+.opcao-input:focus{outline:none;border-color:var(--accent);}
+.opcao-radio{accent-color:var(--green);width:14px;height:14px;cursor:pointer;}
+.quiz-config-row{display:flex;align-items:center;gap:16px;}
+.quiz-config-label{font-size:11px;color:var(--muted);}
+.quiz-tempo-select{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);font-family:'IBM Plex Mono',monospace;}
+.quiz-correta-hint{font-size:10px;color:var(--muted);}
+.btn-iniciar-quiz{background:var(--green);color:#0d1117;border:none;border-radius:6px;padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;}
+.btn-iniciar-quiz:hover{opacity:.85;}
+
+/* ── Content (blocks) ── */
+.content{flex:1;overflow-y:auto;padding:20px;}
+.bloco-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;}
+.bloco-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.bloco-header h3{font-size:13px;font-weight:600;flex:1;}
+.tempo-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg3);padding:2px 8px;border-radius:3px;}
+.bloco-body{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.roteiro-box{background:var(--bg3);border-radius:8px;padding:12px;}
+.roteiro-box .rl{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
+.fala{border-left:2px solid var(--accent);padding:7px 10px;background:rgba(88,166,255,.05);border-radius:0 6px 6px 0;font-style:italic;font-size:11px;color:#a5c9ef;line-height:1.6;margin:6px 0;}
+.nota{border-radius:6px;padding:9px 11px;font-size:11px;line-height:1.55;margin:6px 0;display:flex;gap:7px;}
+.nota-w{background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);}
+.nota-g{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);}
+.nota-p{background:rgba(163,113,247,.08);border:1px solid rgba(163,113,247,.2);}
+.nota-icon{flex-shrink:0;font-size:12px;}
+.nota-body{flex:1;color:var(--muted);}
+.nota-body strong{color:var(--text);}
+.preview-box{background:var(--bg3);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.preview-box .pl{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:4px;}
+.liberar-btn{background:var(--green);color:#0d1117;border:none;border-radius:6px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;}
+.liberar-btn:hover{opacity:.85;}
+.liberar-btn:disabled{background:var(--bg3);color:var(--muted);cursor:default;}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <span class="badge">PROFESSOR</span>
+    <h1>Aula 0.1 — Introdução à IA</h1>
+    <p>Módulo 0 · Framework 4D · 90 min</p>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="sidebar-prog" style="width:0%"></div></div>
+  <div class="nav">
+    <div class="nav-label">Blocos</div>
+    <div id="nav-list"></div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Painel do Instrutor</h2>
+      <p id="alunos-online">0 alunos conectados</p>
+    </div>
+    <div class="topbar-right">
+      <span class="ws-badge ws-conn" id="ws-status">conectando...</span>
+      <div class="timer" id="timer" onclick="toggleTimer()" title="Iniciar/pausar">00:00</div>
+      <button class="btn btn-primary" onclick="liberarProximo()">Liberar próximo ▶</button>
+      <button class="btn" onclick="resetarAula()">Reiniciar</button>
+    </div>
+  </div>
+
+  <!-- Activity Bar -->
+  <div class="activity-bar">
+    <span class="activity-bar-label">Atividade</span>
+    <button class="act-btn" id="act-pergunta" onclick="toggleMode('pergunta')">
+      💬 Pergunta Aberta
+    </button>
+    <button class="act-btn" id="act-quiz" onclick="toggleMode('quiz')">
+      🎮 Quiz
+    </button>
+    <button class="act-btn disabled" title="Em breve">
+      📋 Exercício
+    </button>
+    <div class="act-sep"></div>
+    <button class="act-btn act-encerrar" id="act-encerrar" onclick="encerrarAtividade()" style="display:none">
+      ✕ Encerrar atividade
+    </button>
+  </div>
+
+  <!-- Activity Panel -->
+  <div class="activity-panel closed" id="activity-panel">
+
+    <!-- Pergunta Aberta -->
+    <div class="mode-pergunta" id="mode-pergunta" style="display:none">
+      <div class="perg-input-row">
+        <input type="text" id="pergunta-texto" placeholder="Digite a pergunta para a turma..."
+          onkeydown="if(event.key==='Enter') enviarPergunta()">
+        <button class="btn btn-primary" onclick="enviarPergunta()">Enviar →</button>
+      </div>
+
+      <div class="respostas-panel">
+        <div class="respostas-header">
+          <span>Respostas recebidas</span>
+          <span class="respostas-count" id="respostas-count">0</span>
+        </div>
+        <div class="respostas-list" id="respostas-list">
+          <div class="respostas-empty">Nenhuma resposta ainda</div>
+        </div>
+      </div>
+
+      <div class="reveal-row">
+        <span class="reveal-label">Revelar para turma:</span>
+        <div class="btn-ia" title="Funcionalidade em desenvolvimento">
+          🤖 Agrupar com IA
+          <span class="btn-ia-tag">em breve</span>
+        </div>
+        <button class="btn-bolhas" id="btn-bolhas" onclick="revelarBolhas()">
+          🫧 Mostrar como bolhas
+        </button>
+        <button class="btn-fechar-bolhas" id="btn-fechar-bolhas" onclick="fecharBolhas()" style="display:none">
+          Fechar bolhas nos alunos
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz Creator -->
+    <div class="mode-quiz" id="mode-quiz" style="display:none">
+      <div class="quiz-form">
+        <input type="text" class="quiz-pergunta-input" id="quiz-pergunta"
+          placeholder="Qual a pergunta para a turma?">
+
+        <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;">
+          Opções — marque a correta
+        </div>
+        <div class="quiz-opcoes">
+          <div class="quiz-opcao">
+            <div class="opcao-letra letra-a">A</div>
+            <input type="text" class="opcao-input" id="quiz-op-a" placeholder="Opção A">
+            <input type="radio" class="opcao-radio" name="quiz-correta" value="0" id="radio-a">
+          </div>
+          <div class="quiz-opcao">
+            <div class="opcao-letra letra-b">B</div>
+            <input type="text" class="opcao-input" id="quiz-op-b" placeholder="Opção B">
+            <input type="radio" class="opcao-radio" name="quiz-correta" value="1" id="radio-b">
+          </div>
+          <div class="quiz-opcao">
+            <div class="opcao-letra letra-c">C</div>
+            <input type="text" class="opcao-input" id="quiz-op-c" placeholder="Opção C">
+            <input type="radio" class="opcao-radio" name="quiz-correta" value="2" id="radio-c">
+          </div>
+          <div class="quiz-opcao">
+            <div class="opcao-letra letra-d">D</div>
+            <input type="text" class="opcao-input" id="quiz-op-d" placeholder="Opção D">
+            <input type="radio" class="opcao-radio" name="quiz-correta" value="3" id="radio-d">
+          </div>
+        </div>
+
+        <div class="quiz-config-row">
+          <span class="quiz-config-label">Tempo:</span>
+          <select class="quiz-tempo-select" id="quiz-tempo">
+            <option value="10">10 s</option>
+            <option value="20" selected>20 s</option>
+            <option value="30">30 s</option>
+            <option value="45">45 s</option>
+            <option value="60">60 s</option>
+          </select>
+          <span class="quiz-correta-hint">Clique no círculo da opção correta →</span>
+          <button class="btn-iniciar-quiz" onclick="iniciarQuiz()">▶ Iniciar Quiz</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Blocks content -->
+  <div class="content" id="content"></div>
+
+</div>
+
+<script>
+const BLOCOS = [
+  {id:1,titulo:"Abertura e gancho",tempo:"0–10 min",
+    fala:'"Quem aqui já ficou frustrado com o ChatGPT ou Claude? Levanta a mão." — Espere o silêncio. "Esse sentimento não é culpa de vocês. É porque a maioria interage com IA como se fosse um Google melhorado. Não é. Hoje vamos mudar isso."',
+    notas:[{tipo:"g",icon:"💡",texto:"<strong>Gancho:</strong> Pergunte 'O que sua tela tem em comum com a IA?' Deixe 2-3 respostas vierem, depois revele a conexão pixel → matriz → GPU → Transformer."},{tipo:"w",icon:"⏱",texto:"Máximo 10 minutos. Corte se engajar demais."}]},
+  {id:2,titulo:"Por que fluência em IA?",tempo:"10–25 min",
+    fala:'"Fluência em IA significa interagir de formas eficazes, eficientes, éticas e seguras. Não é sobre decorar prompts — é sobre desenvolver habilidades que continuam relevantes mesmo quando a tecnologia muda."',
+    notas:[{tipo:"p",icon:"❓",texto:"<strong>Pergunta de ativação:</strong> 'Alguém já teve uma situação onde a IA deu uma resposta que parecia certa mas estava errada?' — Colete 2-3 exemplos."},{tipo:"g",icon:"📚",texto:"Fonte: Vídeo 1 + 2A da Anthropic Academy."}]},
+  {id:3,titulo:"Os 3 modos de interação",tempo:"25–40 min",
+    fala:'"Existem três formas de trabalhar com IA: Automação, Aumento e Agência. A maioria das pessoas fica presa só na automação."',
+    notas:[{tipo:"w",icon:"⚠️",texto:"<strong>Cuidado com Agência:</strong> Reforce: 'A IA nunca assina um documento. Você sempre supervisiona.'"},{tipo:"g",icon:"💡",texto:"'O aumento e a agência são onde a IA realmente brilha — mas exigem mais fluência para usar bem.'"}]},
+  {id:4,titulo:"O Framework 4D",tempo:"40–55 min",
+    fala:'"Os 4Ds: Delegação, Descrição, Discernimento, Diligência. Funcionam com qualquer IA, hoje e no futuro."',
+    notas:[{tipo:"p",icon:"❓",texto:"<strong>Atividade rápida (3 min):</strong> 'Em qual dos 4Ds vocês sentem mais dificuldade hoje?' Levantar a mão por D."},{tipo:"g",icon:"📚",texto:"Rick Dakan (Anthropic): 'Não estão ligados a ferramentas específicas — são habilidades fundamentais.'"}]},
+  {id:5,titulo:"O que é IA Generativa",tempo:"55–70 min",
+    fala:'"Antes de 2017, a IA lia em fila — esquecendo o começo. Em 2017, Attention Is All You Need mudou tudo: processamento paralelo. Claude lê um contrato inteiro de uma vez."',
+    notas:[{tipo:"w",icon:"⚠️",texto:"Tom correto: é alfabetização, não engenharia. Nunca use jargão sem analogia."},{tipo:"g",icon:"🎬",texto:"Use os SVGs criados: esteira sequencial → mecanismo de atenção → antes vs depois."}]},
+  {id:6,titulo:"Capacidades e limitações",tempo:"70–85 min",
+    fala:'"Claude tem 6 limitações reais: data de corte, alucinação, janela de contexto, respostas variáveis, raciocínio complexo, acesso limitado. A regra: Claude auxilia, você verifica, você assina."',
+    notas:[{tipo:"w",icon:"⚠️",texto:"<strong>Case real:</strong> Mata v. Avianca (2023) — advogados punidos por citar jurisprudências inventadas."},{tipo:"g",icon:"📚",texto:"Fonte: Vídeo 3B Anthropic. Use a mesma ordem das 6 limitações do material oficial."}]},
+  {id:7,titulo:"Exercício + Fechamento",tempo:"85–90 min",
+    fala:'"Exercício: pensem em uma tarefa do dia a dia. Qual modo usariam? Como aplicariam os 4Ds? 1 minuto cada."',
+    notas:[{tipo:"g",icon:"💡",texto:"Recursos pós-aula: Playlist YouTube Anthropic Academy · anthropic.skilljar.com"},{tipo:"p",icon:"📋",texto:"Lembre de coletar feedback via pergunta final."}]}
+];
+
+let blocoAtual = 0;
+let modoAtivo = null; // 'pergunta' | 'quiz' | null
+let respostasLocais = [];
+let bolhasAtivas = false;
+let timerSec = 0, timerRunning = false, timerInterval;
+let ws, wsReady = false;
+
+// ── WebSocket ────────────────────────────────────────────────
+function conectarWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+  ws.onopen = () => {
+    wsReady = true;
+    setWsStatus('ok', 'conectado');
+    ws.send(JSON.stringify({ type: 'professor_connect' }));
+  };
+  ws.onclose = () => { wsReady = false; setWsStatus('err', 'desconectado'); setTimeout(conectarWS, 3000); };
+  ws.onerror = () => setWsStatus('err', 'erro');
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state_update') handleStateUpdate(msg);
+    if (msg.type === 'nova_resposta') handleNovaResposta(msg);
+  };
+}
+function setWsStatus(s, t) {
+  const el = document.getElementById('ws-status');
+  el.className = `ws-badge ws-${s}`;
+  el.textContent = t;
+}
+function wsSend(data) { if (wsReady) ws.send(JSON.stringify(data)); }
+
+// ── State ────────────────────────────────────────────────────
+function handleStateUpdate(msg) {
+  blocoAtual = msg.blocoLiberado ?? 0;
+  const count = msg.alunosOnline ?? 0;
+  document.getElementById('alunos-online').textContent =
+    `${count} aluno${count !== 1 ? 's' : ''} conectado${count !== 1 ? 's' : ''}`;
+  // Restaura respostas se houver pergunta ativa
+  if (msg.respostas && msg.respostas.length) {
+    respostasLocais = msg.respostas;
+    renderRespostasList();
+  }
+  renderBlocos();
+}
+
+function handleNovaResposta(msg) {
+  respostasLocais.push({ nome: msg.nome, texto: msg.texto });
+  renderRespostasList();
+}
+
+function renderRespostasList() {
+  const list = document.getElementById('respostas-list');
+  const count = document.getElementById('respostas-count');
+  if (!list) return;
+  count.textContent = respostasLocais.length;
+  if (!respostasLocais.length) {
+    list.innerHTML = '<div class="respostas-empty">Nenhuma resposta ainda</div>';
+    return;
+  }
+  list.innerHTML = respostasLocais.map(r => `
+    <div class="resp-row">
+      <span class="resp-row-nome">${esc(r.nome)}</span>
+      <span class="resp-row-texto">${esc(r.texto)}</span>
+    </div>
+  `).join('');
+  list.scrollTop = list.scrollHeight;
+}
+
+// ── Activity modes ───────────────────────────────────────────
+function toggleMode(modo) {
+  if (modoAtivo === modo) {
+    encerrarAtividade();
+    return;
+  }
+  modoAtivo = modo;
+  // Show panel
+  const panel = document.getElementById('activity-panel');
+  panel.classList.remove('closed');
+  panel.classList.add('open');
+  // Hide all mode divs
+  document.getElementById('mode-pergunta').style.display = 'none';
+  document.getElementById('mode-quiz').style.display = 'none';
+  // Show selected
+  document.getElementById(`mode-${modo}`).style.display = modo === 'quiz' ? 'block' : 'flex';
+  // Update button states
+  document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById(`act-${modo}`).classList.add('active');
+  document.getElementById('act-encerrar').style.display = 'flex';
+}
+
+function encerrarAtividade() {
+  modoAtivo = null;
+  const panel = document.getElementById('activity-panel');
+  panel.classList.remove('open');
+  panel.classList.add('closed');
+  document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('act-encerrar').style.display = 'none';
+  // Fechar pergunta no servidor
+  wsSend({ type: 'fechar_pergunta' });
+}
+
+// ── Pergunta ─────────────────────────────────────────────────
+function enviarPergunta() {
+  const texto = document.getElementById('pergunta-texto').value.trim();
+  if (!texto) { document.getElementById('pergunta-texto').focus(); return; }
+  respostasLocais = [];
+  renderRespostasList();
+  document.getElementById('btn-fechar-bolhas').style.display = 'none';
+  document.getElementById('btn-bolhas').style.display = 'flex';
+  bolhasAtivas = false;
+  wsSend({ type: 'enviar_pergunta', texto, blocoId: blocoAtual });
+}
+
+function revelarBolhas() {
+  if (!respostasLocais.length) {
+    alert('Ainda não há respostas para revelar.');
+    return;
+  }
+  wsSend({ type: 'revelar_bolhas' });
+  bolhasAtivas = true;
+  document.getElementById('btn-bolhas').style.display = 'none';
+  document.getElementById('btn-fechar-bolhas').style.display = 'inline-flex';
+}
+
+function fecharBolhas() {
+  wsSend({ type: 'fechar_bolhas' });
+  bolhasAtivas = false;
+  document.getElementById('btn-fechar-bolhas').style.display = 'none';
+  document.getElementById('btn-bolhas').style.display = 'flex';
+}
+
+// ── Quiz ─────────────────────────────────────────────────────
+function iniciarQuiz() {
+  const pergunta = document.getElementById('quiz-pergunta').value.trim();
+  if (!pergunta) { alert('Digite a pergunta.'); return; }
+  const opcoes = ['a','b','c','d'].map(l => document.getElementById(`quiz-op-${l}`).value.trim());
+  if (opcoes.some(o => !o)) { alert('Preencha todas as 4 opções.'); return; }
+  const corretaEl = document.querySelector('input[name="quiz-correta"]:checked');
+  if (!corretaEl) { alert('Marque a resposta correta.'); return; }
+  // Sprint 2: implementar lógica de quiz
+  alert('Quiz em desenvolvimento — Sprint 2! 🚧\n\nPergunta criada:\n"' + pergunta + '"\n\nOpções: ' + opcoes.join(' / '));
+}
+
+// ── Blocks ───────────────────────────────────────────────────
+function renderBlocos() {
+  const nav = document.getElementById('nav-list');
+  const content = document.getElementById('content');
+  nav.innerHTML = '';
+  content.innerHTML = '';
+
+  BLOCOS.forEach((b, i) => {
+    const liberado = i <= blocoAtual;
+    const atual = i === blocoAtual;
+
+    const navEl = document.createElement('div');
+    navEl.className = `bloco-nav ${liberado ? 'liberado' : ''} ${atual ? 'atual' : 'bloqueado'}`;
+    navEl.innerHTML = `
+      <div class="bloco-num">${String(b.id).padStart(2,'0')}</div>
+      <div class="bloco-info"><h4>${b.titulo}</h4><p>${b.tempo}</p></div>
+      <div class="bloco-status ${atual?'status-curr':'status-ok'}">${atual?'●':'✓'}</div>
+    `;
+    if (liberado) navEl.onclick = () => document.getElementById(`bloco-${b.id}`).scrollIntoView({behavior:'smooth'});
+    nav.appendChild(navEl);
+
+    const notasHTML = b.notas.map(n => `
+      <div class="nota nota-${n.tipo}">
+        <div class="nota-icon">${n.icon}</div>
+        <div class="nota-body">${n.texto}</div>
+      </div>
+    `).join('');
+
+    const card = document.createElement('div');
+    card.className = 'bloco-card';
+    card.id = `bloco-${b.id}`;
+    card.style.opacity = liberado ? '1' : '0.35';
+    card.innerHTML = `
+      <div class="bloco-header">
+        <h3>${b.id}. ${b.titulo}</h3>
+        <span class="tempo-tag">${b.tempo}</span>
+        ${atual && i < BLOCOS.length-1
+          ? `<button class="btn btn-green" onclick="liberarProximo()" style="font-size:10px;padding:3px 10px;">Liberar próximo ▶</button>`
+          : liberado && !atual ? '<span style="font-size:10px;color:var(--green);font-family:\'IBM Plex Mono\',monospace;">✓ liberado</span>' : ''}
+      </div>
+      <div class="bloco-body">
+        <div class="roteiro-box">
+          <div class="rl">Roteiro — fala sugerida</div>
+          <div class="fala">${b.fala}</div>
+          ${notasHTML}
+        </div>
+        <div class="preview-box">
+          <div class="pl">Preview — tela do aluno</div>
+          <div style="height:130px;background:var(--bg);border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:10px;color:var(--muted);">Bloco ${b.id}</span>
+          </div>
+          <button class="liberar-btn" onclick="liberarBloco(${i})" ${liberado?'disabled':''}>
+            ${liberado ? '✓ Liberado para alunos' : '▶ Liberar este bloco'}
+          </button>
+        </div>
+      </div>
+    `;
+    content.appendChild(card);
+  });
+
+  document.getElementById('sidebar-prog').style.width = ((blocoAtual+1)/BLOCOS.length*100)+'%';
+}
+
+function liberarBloco(idx) {
+  if (idx > blocoAtual + 1) return;
+  blocoAtual = idx;
+  wsSend({ type: 'liberar_bloco', bloco: idx });
+  renderBlocos();
+  document.getElementById(`bloco-${BLOCOS[idx].id}`).scrollIntoView({behavior:'smooth'});
+}
+
+function liberarProximo() {
+  if (blocoAtual < BLOCOS.length - 1) {
+    blocoAtual++;
+    wsSend({ type: 'liberar_bloco', bloco: blocoAtual });
+    renderBlocos();
+    document.getElementById(`bloco-${BLOCOS[blocoAtual].id}`).scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function resetarAula() {
+  if (!confirm('Reiniciar aula do zero?')) return;
+  blocoAtual = 0;
+  respostasLocais = [];
+  renderRespostasList();
+  wsSend({ type: 'reset_aula' });
+  renderBlocos();
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning = false;
+  } else {
+    timerInterval = setInterval(() => {
+      timerSec++;
+      const m = Math.floor(timerSec/60), s = timerSec%60;
+      document.getElementById('timer').textContent =
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+    timerRunning = true;
+  }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+renderBlocos();
+conectarWS();
+</script>
+</body>
+</html>

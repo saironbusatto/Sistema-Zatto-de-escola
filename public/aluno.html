@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 0.1 — IA e Framework 4D</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap');
+:root{--bg:#f7f5f0;--bg2:#eeece6;--bg3:#e4e1d8;--text:#1c1a16;--muted:#6b6860;--border:#d4d0c8;--accent:#2d5fa3;--green:#1a7a45;--amber:#b8620a;--red:#a82828;--purple:#6238a8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.65;}
+.topbar{background:var(--text);color:#f7f5f0;position:sticky;top:0;z-index:100;}
+.topbar-inner{max-width:760px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-brand{font-family:'Fraunces',serif;font-size:15px;font-weight:500;letter-spacing:-.01em;}
+.topbar-meta{display:flex;align-items:center;gap:14px;font-size:12px;opacity:.7;}
+.prog-outer{background:rgba(255,255,255,.15);height:3px;border-radius:2px;overflow:hidden;width:80px;}
+.prog-inner{height:100%;background:#fff;border-radius:2px;transition:width .5s;}
+.hero{background:var(--text);color:#f7f5f0;border-bottom:3px solid var(--bg3);}
+.hero-inner{max-width:760px;margin:0 auto;padding:48px 24px 40px;}
+.hero-eye{font-size:11px;letter-spacing:.14em;opacity:.45;text-transform:uppercase;margin-bottom:10px;}
+.hero h1{font-family:'Fraunces',serif;font-size:36px;font-weight:600;line-height:1.15;margin-bottom:12px;max-width:520px;}
+.hero p{font-size:14px;opacity:.65;max-width:480px;line-height:1.65;margin-bottom:24px;}
+.hero-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:4px 14px;font-size:11px;opacity:.8;}
+.page-center{max-width:760px;margin:0 auto;}
+.blocos{padding:0;}
+.bloco{border-bottom:2px solid var(--bg3);overflow:hidden;}
+.bloco.entrando{animation:slideIn .5s ease forwards;}
+@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.bloco-visual{background:var(--bg2);padding:40px 24px 32px;display:flex;justify-content:center;border-bottom:1px solid var(--border);}
+.bloco-visual svg{max-width:640px;width:100%;}
+.bloco-conteudo{padding:32px 24px 36px;}
+/* ── Notificação de avanço ── */
+#avanco-notif{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.88);background:rgba(28,26,22,0.97);color:#f7f5f0;border-radius:20px;padding:28px 44px;text-align:center;z-index:450;pointer-events:none;opacity:0;border:1px solid rgba(255,255,255,0.10);box-shadow:0 24px 60px rgba(0,0,0,0.55);backdrop-filter:blur(10px);transition:opacity .35s cubic-bezier(.22,1,.36,1),transform .35s cubic-bezier(.22,1,.36,1);min-width:240px;}
+#avanco-notif.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.avanco-seta{font-size:28px;margin-bottom:10px;display:block;}
+.avanco-num{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.45;margin-bottom:6px;font-family:'DM Sans',sans-serif;}
+.avanco-titulo{font-family:'Fraunces',serif;font-size:19px;font-weight:500;line-height:1.25;}
+.bloco-eye{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.bloco-conteudo h2{font-family:'Fraunces',serif;font-size:24px;font-weight:500;line-height:1.25;margin-bottom:14px;color:var(--text);}
+.bloco-conteudo p{font-size:14px;color:#3a3830;line-height:1.75;margin-bottom:12px;}
+.bloco-conteudo p:last-child{margin-bottom:0;}
+.destaque{background:var(--bg2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;}
+.destaque h4{font-size:13px;font-weight:500;color:var(--accent);margin-bottom:6px;}
+.destaque p{font-size:13px;color:var(--muted);margin:0;}
+.modos{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0;}
+.modo{background:var(--bg2);border-radius:10px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;border-left:3px solid var(--border);}
+.modo.m1{border-color:var(--accent);}
+.modo.m2{border-color:var(--green);}
+.modo.m3{border-color:var(--purple);}
+.modo-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;}
+.n1{background:var(--accent);}
+.n2{background:var(--green);}
+.n3{background:var(--purple);}
+.modo-body h4{font-size:14px;font-weight:500;margin-bottom:3px;}
+.modo-body p{font-size:12px;color:var(--muted);margin:0;}
+.modo-ex{font-size:11px;color:var(--green);margin-top:5px;font-style:italic;}
+.quadro4d{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+.dcard{background:var(--bg2);border-radius:10px;padding:14px 16px;border-top:3px solid var(--border);}
+.dcard.d1{border-color:var(--accent);}
+.dcard.d2{border-color:var(--green);}
+.dcard.d3{border-color:var(--purple);}
+.dcard.d4{border-color:var(--amber);}
+.dcard-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.l1{color:var(--accent);}
+.l2{color:var(--green);}
+.l3{color:var(--purple);}
+.l4{color:var(--amber);}
+.dcard h4{font-size:14px;font-weight:500;margin-bottom:4px;}
+.dcard p{font-size:12px;color:var(--muted);line-height:1.55;}
+.limits{margin:16px 0;}
+.limit{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.limit:last-child{border:none;}
+.limit-ico{width:26px;height:26px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;}
+.limit h4{font-size:13px;font-weight:500;margin-bottom:2px;}
+.limit p{font-size:12px;color:var(--muted);}
+.alerta{background:#fff8ed;border:1px solid #f5d080;border-radius:10px;padding:14px 18px;margin:16px 0;display:flex;gap:10px;}
+.alerta-ico{font-size:16px;flex-shrink:0;}
+.alerta h4{font-size:13px;font-weight:600;color:var(--amber);margin-bottom:3px;}
+.alerta p{font-size:12px;color:#7a5a18;line-height:1.6;}
+.pergunta-aluno{background:var(--text);color:#f7f5f0;padding:24px;margin:0;}
+.pa-eye{font-size:10px;letter-spacing:.12em;opacity:.5;text-transform:uppercase;margin-bottom:8px;}
+.pa-texto{font-family:'Fraunces',serif;font-size:20px;font-weight:500;margin-bottom:16px;line-height:1.3;}
+.pa-input{display:flex;gap:8px;}
+.pa-input input{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 14px;font-size:14px;color:#f7f5f0;font-family:'DM Sans',sans-serif;}
+.pa-input input::placeholder{opacity:.4;}
+.pa-input input:focus{outline:none;border-color:rgba(255,255,255,.5);}
+.pa-btn{background:#f7f5f0;color:var(--text);border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.pa-btn:hover{opacity:.85;}
+.pa-sent{display:none;font-size:13px;opacity:.6;padding-top:8px;}
+.checklist{background:var(--bg2);border-radius:10px;padding:20px 22px;margin:20px 0;}
+.checklist h4{font-size:14px;font-weight:500;margin-bottom:12px;}
+.check-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;cursor:pointer;}
+.check-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;margin-top:2px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.check-box.done{background:var(--green);border-color:var(--green);}
+.check-box.done::after{content:'✓';color:#fff;font-size:11px;}
+.check-text{font-size:13px;color:var(--muted);line-height:1.5;}
+.aguardando{padding:60px 24px;text-align:center;}
+.aguardando h2{font-family:'Fraunces',serif;font-size:28px;font-weight:300;color:var(--muted);margin-bottom:8px;}
+.aguardando p{font-size:14px;color:var(--muted);}
+.pulse{display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 1.5s ease infinite;margin-right:6px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ── Bolhas overlay ── */
+#bolhas-overlay{position:fixed;inset:0;background:rgba(15,12,8,0.92);z-index:500;display:none;overflow:hidden;}
+#bolhas-titulo{position:absolute;top:0;left:0;right:0;padding:20px 24px;text-align:center;font-family:'Fraunces',serif;font-size:15px;font-weight:300;color:rgba(255,255,255,0.35);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;}
+#bolhas-container{position:absolute;inset:0;top:56px;}
+
+.bolha{
+  position:absolute;
+  background:#fff;
+  border-radius:22px;
+  padding:14px 20px;
+  max-width:240px;
+  min-width:120px;
+  box-shadow:0 6px 28px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2);
+  animation:
+    bolhaPopIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both,
+    bolhaFlutua var(--dur,5s) ease-in-out calc(0.5s + var(--fdelay,0s)) infinite;
+}
+.bolha-nome{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;color:var(--cor,#2d5fa3);}
+.bolha-texto{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.5;color:#1c1a16;word-break:break-word;}
+
+@keyframes bolhaPopIn{
+  0%  {transform:scale(0.2) translateY(40px);opacity:0;}
+  55% {transform:scale(1.06) translateY(-6px);opacity:1;}
+  100%{transform:scale(1) translateY(0);opacity:1;}
+}
+@keyframes bolhaFlutua{
+  0%  {transform:translateY(0px)   translateX(0px)   rotate(-1.5deg);}
+  18% {transform:translateY(-16px) translateX(6px)   rotate(1.2deg);}
+  38% {transform:translateY(-9px)  translateX(-5px)  rotate(-0.6deg);}
+  60% {transform:translateY(-20px) translateX(4px)   rotate(2deg);}
+  78% {transform:translateY(-11px) translateX(-3px)  rotate(-1deg);}
+  100%{transform:translateY(0px)   translateX(0px)   rotate(-1.5deg);}
+}
+
+/* SVG shared styles */
+svg .th{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;fill:var(--text);}
+svg .ts{font-family:'DM Sans',sans-serif;font-size:11px;fill:var(--muted);}
+svg .box{fill:var(--bg2);stroke:var(--border);}
+svg .c-blue{fill:#dbeafe;stroke:#93c5fd;}
+svg .c-teal{fill:#d1fae5;stroke:#6ee7b7;}
+svg .c-amber{fill:#fef3c7;stroke:#fcd34d;}
+svg .c-red{fill:#fee2e2;stroke:#fca5a5;}
+svg .c-purple{fill:#ede9fe;stroke:#c4b5fd;}
+svg .c-green{fill:#dcfce7;stroke:#86efac;}
+svg .c-gray{fill:var(--bg3);stroke:var(--border);}
+svg .s{stroke:var(--border);}
+svg text{fill:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">Módulo 0 · Aula 0.1</div>
+    <div class="topbar-meta">
+      <span id="bloco-label">Aguardando início</span>
+      <div class="prog-outer"><div class="prog-inner" id="prog" style="width:0%"></div></div>
+      <span id="pct-label">0%</span>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eye">Aula 0.1 · Módulo 0: Foundations</div>
+    <h1>Introdução à IA e ao Framework 4D</h1>
+    <p>Entenda como a IA generativa realmente funciona, por que ela é diferente de tudo antes dela, e o framework que vai guiar todo o seu uso.</p>
+    <div class="hero-pills">
+      <div class="pill">90 minutos</div>
+      <div class="pill">Framework 4D</div>
+      <div class="pill">Sem jargão técnico</div>
+      <div class="pill">Certificável</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-center">
+  <div class="blocos" id="blocos">
+    <div class="aguardando" id="aguardando">
+      <h2><span class="pulse"></span>Aguardando o professor...</h2>
+      <p>O conteúdo aparecerá aqui quando a aula começar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Notificação de avanço -->
+<div id="avanco-notif">
+  <span class="avanco-seta">▼</span>
+  <div class="avanco-num" id="avanco-num"></div>
+  <div class="avanco-titulo" id="avanco-titulo"></div>
+</div>
+
+<!-- Overlay de bolhas -->
+<div id="bolhas-overlay">
+  <div id="bolhas-titulo">respostas da turma</div>
+  <div id="bolhas-container"></div>
+</div>
+
+<!-- Modal nome -->
+<div id="nome-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;">
+  <div style="background:#fff;border-radius:14px;padding:32px;width:320px;text-align:center;">
+    <h3 style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px;">Bem-vindo!</h3>
+    <p style="font-size:13px;color:#666;margin-bottom:20px;">Como você quer ser identificado na aula?</p>
+    <input type="text" id="nome-input" placeholder="Seu nome ou apelido"
+      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:12px;font-family:'DM Sans',sans-serif;"
+      onkeydown="if(event.key==='Enter')entrar()">
+    <button onclick="entrar()" style="width:100%;background:#1c1a16;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Entrar na aula</button>
+  </div>
+</div>
+
+<script>
+let nomeAluno = '';
+let blocoAtualRender = -1;   // -1 = ainda não recebeu nenhum state_update
+let respostasEnviadas = new Set();
+let ws, wsReady = false;
+let avancoTimer = null;
+
+// ── SVGs dos blocos ────────────────────────────────────────
+const SVGs = {
+  1: `<svg width="100%" viewBox="0 0 640 300" role="img">
+    <title>Abertura — humano e IA como parceiros</title>
+    <desc>Ilustração mostrando a lacuna entre ter acesso à IA e ser fluente nela</desc>
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    <circle cx="120" cy="100" r="26" fill="none" stroke="#2d5fa3" stroke-width="1.5"/>
+    <text class="th" x="120" y="104" text-anchor="middle" dominant-baseline="central" font-size="22">👤</text>
+    <rect class="c-blue" x="80" y="138" width="80" height="36" rx="8" stroke-width="0.5"/>
+    <text class="th" x="120" y="158" text-anchor="middle" dominant-baseline="central">Você</text>
+    <line x1="162" y1="118" x2="218" y2="118" stroke="#888780" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+    <rect class="c-amber" x="200" y="88" width="120" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="260" y="106" text-anchor="middle" dominant-baseline="central">Lacuna</text>
+    <text class="ts" x="260" y="122" text-anchor="middle" dominant-baseline="central">acesso ≠ fluência</text>
+    <line x1="322" y1="118" x2="378" y2="118" stroke="#888780" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+    <circle cx="430" cy="100" r="26" fill="none" stroke="#1a7a45" stroke-width="1.5"/>
+    <text class="th" x="430" y="104" text-anchor="middle" dominant-baseline="central" font-size="22">🤖</text>
+    <rect class="c-teal" x="390" y="138" width="80" height="36" rx="8" stroke-width="0.5"/>
+    <text class="th" x="430" y="158" text-anchor="middle" dominant-baseline="central">Claude</text>
+    <text class="ts" x="320" y="220" text-anchor="middle">Com fluência em IA:</text>
+    <rect class="c-green" x="160" y="235" width="320" height="40" rx="10" stroke-width="0.5"/>
+    <text class="th" x="320" y="255" text-anchor="middle" dominant-baseline="central">Eficaz · Eficiente · Ético · Seguro</text>
+  </svg>`,
+
+  2: `<svg width="100%" viewBox="0 0 640 280" role="img">
+    <title>Por que fluência — o que muda com ela</title>
+    <desc>Comparação entre usar IA sem fluência e usar com fluência</desc>
+    <rect class="c-red" x="40" y="40" width="240" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="160" y="62" text-anchor="middle" dominant-baseline="central">Sem fluência em IA</text>
+    <rect class="box" x="40" y="100" width="240" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="160" y="120" text-anchor="middle" dominant-baseline="central">Resultados frustrantes</text>
+    <rect class="box" x="40" y="146" width="240" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="160" y="166" text-anchor="middle" dominant-baseline="central">Tempo perdido com retrabalho</text>
+    <rect class="box" x="40" y="192" width="240" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="160" y="212" text-anchor="middle" dominant-baseline="central">Risco de confiar em erros</text>
+    <line x1="320" y1="40" x2="320" y2="240" stroke="#d4d0c8" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <rect class="c-teal" x="360" y="40" width="240" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="480" y="62" text-anchor="middle" dominant-baseline="central">Com fluência em IA</text>
+    <rect class="c-green" x="360" y="100" width="240" height="36" rx="8" stroke-width="0.5" style="opacity:.7"/>
+    <text class="th" x="480" y="120" text-anchor="middle" dominant-baseline="central">Resultados de alta qualidade</text>
+    <rect class="c-green" x="360" y="146" width="240" height="36" rx="8" stroke-width="0.5" style="opacity:.5"/>
+    <text class="th" x="480" y="166" text-anchor="middle" dominant-baseline="central">Tempo economizado</text>
+    <rect class="c-green" x="360" y="192" width="240" height="36" rx="8" stroke-width="0.5" style="opacity:.4"/>
+    <text class="th" x="480" y="212" text-anchor="middle" dominant-baseline="central">Uso responsável e seguro</text>
+  </svg>`,
+
+  3: `<svg width="100%" viewBox="0 0 640 310" role="img">
+    <title>Os 3 modos de interação com IA</title>
+    <desc>Automação, Aumento e Agência ilustrados com exemplos</desc>
+    <rect class="c-blue" x="30" y="30" width="174" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="117" y="52" text-anchor="middle" dominant-baseline="central">1. Automação</text>
+    <rect class="box" x="30" y="90" width="174" height="80" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="117" y="118" text-anchor="middle">Você instrui</text>
+    <text class="ts" x="117" y="136" text-anchor="middle">IA executa</text>
+    <text class="ts" x="117" y="154" text-anchor="middle" style="font-style:italic">"Resuma este contrato"</text>
+    <rect class="box" x="30" y="188" width="174" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="117" y="208" text-anchor="middle" dominant-baseline="central">Resultado definido</text>
+    <rect class="c-teal" x="234" y="30" width="172" height="44" rx="10" stroke-width="1"/>
+    <text class="th" x="320" y="52" text-anchor="middle" dominant-baseline="central">2. Aumento ★</text>
+    <rect class="c-teal" x="234" y="90" width="172" height="80" rx="8" stroke-width="0.5" style="opacity:.4"/>
+    <text class="ts" x="320" y="118" text-anchor="middle">Vocês colaboram</text>
+    <text class="ts" x="320" y="136" text-anchor="middle">como parceiros</text>
+    <text class="ts" x="320" y="154" text-anchor="middle" style="font-style:italic">"Explore a tese comigo"</text>
+    <rect class="c-teal" x="234" y="188" width="172" height="36" rx="8" stroke-width="0.5" style="opacity:.6"/>
+    <text class="ts" x="320" y="208" text-anchor="middle" dominant-baseline="central">Resultado emergente</text>
+    <rect class="c-purple" x="436" y="30" width="174" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="523" y="52" text-anchor="middle" dominant-baseline="central">3. Agência</text>
+    <rect class="box" x="436" y="90" width="174" height="80" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="523" y="118" text-anchor="middle">IA age em</text>
+    <text class="ts" x="523" y="136" text-anchor="middle">seu nome</text>
+    <text class="ts" x="523" y="154" text-anchor="middle" style="font-style:italic">"Monitor de prazos"</text>
+    <rect class="box" x="436" y="188" width="174" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="523" y="208" text-anchor="middle" dominant-baseline="central">Autônomo com limites</text>
+    <text class="ts" x="320" y="260" text-anchor="middle">★ O mais poderoso — onde humano e IA se complementam</text>
+  </svg>`,
+
+  4: `<svg width="100%" viewBox="0 0 640 320" role="img">
+    <title>Framework 4D — Delegação, Descrição, Discernimento, Diligência</title>
+    <desc>Os quatro quadrantes do Framework 4D da Anthropic</desc>
+    <defs><marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    <circle cx="320" cy="160" r="44" fill="none" stroke="#d4d0c8" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <text class="th" x="320" y="155" text-anchor="middle" dominant-baseline="central">4D</text>
+    <text class="ts" x="320" y="172" text-anchor="middle" dominant-baseline="central">Framework</text>
+    <rect class="c-blue" x="40" y="30" width="190" height="90" rx="12" stroke-width="0.5"/>
+    <text class="th" x="135" y="60" text-anchor="middle" dominant-baseline="central">Delegação</text>
+    <text class="ts" x="135" y="80" text-anchor="middle" dominant-baseline="central">Quando usar IA?</text>
+    <text class="ts" x="135" y="98" text-anchor="middle" dominant-baseline="central">O que delegar?</text>
+    <line x1="230" y1="100" x2="280" y2="130" stroke="#378ADD" stroke-width="1" marker-end="url(#ar4)" fill="none"/>
+    <rect class="c-teal" x="410" y="30" width="190" height="90" rx="12" stroke-width="0.5"/>
+    <text class="th" x="505" y="60" text-anchor="middle" dominant-baseline="central">Descrição</text>
+    <text class="ts" x="505" y="80" text-anchor="middle" dominant-baseline="central">Como comunicar?</text>
+    <text class="ts" x="505" y="98" text-anchor="middle" dominant-baseline="central">Produto, processo, tom</text>
+    <line x1="410" y1="100" x2="360" y2="130" stroke="#1D9E75" stroke-width="1" marker-end="url(#ar4)" fill="none"/>
+    <rect class="c-purple" x="40" y="200" width="190" height="90" rx="12" stroke-width="0.5"/>
+    <text class="th" x="135" y="230" text-anchor="middle" dominant-baseline="central">Discernimento</text>
+    <text class="ts" x="135" y="250" text-anchor="middle" dominant-baseline="central">Como avaliar?</text>
+    <text class="ts" x="135" y="268" text-anchor="middle" dominant-baseline="central">Checar qualidade</text>
+    <line x1="230" y1="222" x2="280" y2="192" stroke="#7F77DD" stroke-width="1" marker-end="url(#ar4)" fill="none"/>
+    <rect class="c-amber" x="410" y="200" width="190" height="90" rx="12" stroke-width="0.5"/>
+    <text class="th" x="505" y="230" text-anchor="middle" dominant-baseline="central">Diligência</text>
+    <text class="ts" x="505" y="250" text-anchor="middle" dominant-baseline="central">Como usar com responsab.?</text>
+    <text class="ts" x="505" y="268" text-anchor="middle" dominant-baseline="central">Ético e seguro</text>
+    <line x1="410" y1="222" x2="360" y2="192" stroke="#BA7517" stroke-width="1" marker-end="url(#ar4)" fill="none"/>
+  </svg>`,
+
+  5: `<svg width="100%" viewBox="0 0 640 340" role="img">
+    <title>A esteira sequencial vs o Transformer — evolução da IA</title>
+    <desc>Antes de 2017 a IA processava em fila; o Transformer processa tudo em paralelo</desc>
+    <defs><marker id="ar5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    <text class="th" x="160" y="36" text-anchor="middle" dominant-baseline="central">Antes de 2017</text>
+    <g class="c-gray"><rect x="30" y="56" width="52" height="36" rx="6" stroke-width="0.5"/><text class="th" x="56" y="75" text-anchor="middle" dominant-baseline="central">O</text></g>
+    <line x1="83" y1="74" x2="98" y2="74" stroke="#d4d0c8" stroke-width="1" marker-end="url(#ar5)"/>
+    <g class="c-gray"><rect x="100" y="56" width="80" height="36" rx="6" stroke-width="0.5"/><text class="th" x="140" y="75" text-anchor="middle" dominant-baseline="central">contrato</text></g>
+    <line x1="181" y1="74" x2="196" y2="74" stroke="#d4d0c8" stroke-width="1" marker-end="url(#ar5)"/>
+    <g style="opacity:.55"><rect class="c-gray" x="198" y="56" width="52" height="36" rx="6" stroke-width="0.5"/><text class="th" x="224" y="75" text-anchor="middle" dominant-baseline="central">de</text></g>
+    <line x1="251" y1="74" x2="266" y2="74" stroke="#d4d0c8" stroke-width="1" marker-end="url(#ar5)" style="opacity:.4"/>
+    <g style="opacity:.25"><rect class="c-gray" x="268" y="56" width="80" height="36" rx="6" stroke-width="0.5"/><text class="th" x="308" y="75" text-anchor="middle" dominant-baseline="central">rescisão</text></g>
+    <line x1="349" y1="74" x2="364" y2="74" stroke="#d4d0c8" stroke-width="1" style="opacity:.15" marker-end="url(#ar5)"/>
+    <g style="opacity:.1"><rect class="c-gray" x="366" y="56" width="70" height="36" rx="6" stroke-width="0.5"/><text class="th" x="401" y="75" text-anchor="middle" dominant-baseline="central">cláusula</text></g>
+    <text class="ts" x="30" y="110" dominant-baseline="central">memorizada</text>
+    <text class="ts" x="400" y="110" dominant-baseline="central" text-anchor="end">esquecida</text>
+    <line x1="110" y1="107" x2="360" y2="107" stroke="#d4d0c8" stroke-width="0.5" stroke-dasharray="3 3" marker-end="url(#ar5)"/>
+    <line x1="320" y1="130" x2="320" y2="340" stroke="#d4d0c8" stroke-width="0.5" stroke-dasharray="4 4"/>
+    <rect class="c-amber" x="258" y="128" width="124" height="28" rx="6" stroke-width="0.5"/>
+    <text class="th" x="320" y="143" text-anchor="middle" dominant-baseline="central">2017 — Transformer</text>
+    <text class="th" x="490" y="36" text-anchor="middle" dominant-baseline="central">Depois do Transformer</text>
+    <g class="c-teal"><rect x="350" y="56" width="52" height="36" rx="6" stroke-width="0.5"/><text class="th" x="376" y="75" text-anchor="middle" dominant-baseline="central">o</text></g>
+    <g class="c-amber"><rect x="420" y="56" width="70" height="36" rx="6" stroke-width="1"/><text class="th" x="455" y="75" text-anchor="middle" dominant-baseline="central">banco</text></g>
+    <g class="c-teal"><rect x="508" y="56" width="70" height="36" rx="6" stroke-width="0.5"/><text class="th" x="543" y="75" text-anchor="middle" dominant-baseline="central">sacar</text></g>
+    <line x1="455" y1="92" x2="376" y2="160" stroke="#BA7517" stroke-width="0.5" opacity="0.3" fill="none"/>
+    <line x1="455" y1="92" x2="543" y2="160" stroke="#1D9E75" stroke-width="3" opacity="0.85" fill="none"/>
+    <g class="c-teal"><rect x="350" y="165" width="80" height="36" rx="6" stroke-width="0.5"/><text class="th" x="390" y="184" text-anchor="middle" dominant-baseline="central">dinheiro</text></g>
+    <g class="c-teal"><rect x="450" y="165" width="80" height="36" rx="6" stroke-width="0.5"/><text class="th" x="490" y="184" text-anchor="middle" dominant-baseline="central">estava</text></g>
+    <g class="c-teal"><rect x="548" y="165" width="62" height="36" rx="6" stroke-width="0.5"/><text class="th" x="579" y="184" text-anchor="middle" dominant-baseline="central">cheio</text></g>
+    <line x1="455" y1="92" x2="390" y2="165" stroke="#1D9E75" stroke-width="2" opacity="0.6" fill="none"/>
+    <rect class="c-teal" x="350" y="230" width="260" height="36" rx="8" stroke-width="0.5" style="opacity:.7"/>
+    <text class="th" x="480" y="249" text-anchor="middle" dominant-baseline="central">"banco" = financeiro (contexto resolvido)</text>
+    <text class="ts" x="480" y="288" text-anchor="middle">Todas as palavras conectadas ao mesmo tempo</text>
+  </svg>`,
+
+  6: `<svg width="100%" viewBox="0 0 640 320" role="img">
+    <title>Capacidades e limitações do Claude</title>
+    <desc>O que Claude faz muito bem versus suas 6 limitações reais</desc>
+    <rect class="c-teal" x="30" y="30" width="270" height="40" rx="10" stroke-width="0.5"/>
+    <text class="th" x="165" y="50" text-anchor="middle" dominant-baseline="central">Claude faz muito bem</text>
+    <rect class="box" x="30" y="82" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="165" y="97" text-anchor="middle" dominant-baseline="central">Escrita, resumo, tradução, explicação</text>
+    <rect class="box" x="30" y="118" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="165" y="133" text-anchor="middle" dominant-baseline="central">Lê documentos inteiros (200k tokens)</text>
+    <rect class="box" x="30" y="154" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="165" y="169" text-anchor="middle" dominant-baseline="central">Mantém contexto da conversa</text>
+    <rect class="box" x="30" y="190" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="165" y="205" text-anchor="middle" dominant-baseline="central">Raciocínio multi-etapa e análise</text>
+    <rect class="c-red" x="340" y="30" width="270" height="40" rx="10" stroke-width="0.5"/>
+    <text class="th" x="475" y="50" text-anchor="middle" dominant-baseline="central">6 limitações reais</text>
+    <rect class="box" x="340" y="82" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="475" y="97" text-anchor="middle" dominant-baseline="central">1. Corte de conhecimento (data)</text>
+    <rect class="c-red" x="340" y="118" width="270" height="30" rx="8" stroke-width="0.5" style="opacity:.6"/>
+    <text class="th" x="475" y="133" text-anchor="middle" dominant-baseline="central">2. Alucinação — inventa fatos</text>
+    <rect class="box" x="340" y="154" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="475" y="169" text-anchor="middle" dominant-baseline="central">3. Janela de contexto limitada</text>
+    <rect class="box" x="340" y="190" width="270" height="30" rx="6" stroke-width="0.5"/>
+    <text class="ts" x="475" y="205" text-anchor="middle" dominant-baseline="central">4. Respostas variáveis (não determinístico)</text>
+    <rect class="c-amber" x="30" y="248" width="580" height="40" rx="10" stroke-width="0.5"/>
+    <text class="th" x="320" y="268" text-anchor="middle" dominant-baseline="central">Claude auxilia · você verifica · você assina</text>
+  </svg>`,
+
+  7: `<svg width="100%" viewBox="0 0 640 280" role="img">
+    <title>Exercício — mapeamento 4D</title>
+    <desc>Card do exercício prático final da aula</desc>
+    <defs><marker id="ar7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+    <rect class="c-gray" x="30" y="30" width="580" height="44" rx="10" stroke-width="0.5"/>
+    <text class="th" x="320" y="52" text-anchor="middle" dominant-baseline="central">Exercício — Meu primeiro mapeamento 4D</text>
+    <g class="c-blue"><rect x="30" y="96" width="130" height="60" rx="8" stroke-width="0.5"/><text class="th" x="95" y="120" text-anchor="middle" dominant-baseline="central">1</text><text class="ts" x="95" y="138" text-anchor="middle" dominant-baseline="central">Escolha uma tarefa</text></g>
+    <line x1="162" y1="126" x2="178" y2="126" stroke="#378ADD" stroke-width="1.5" marker-end="url(#ar7)"/>
+    <g class="c-teal"><rect x="180" y="96" width="130" height="60" rx="8" stroke-width="0.5"/><text class="th" x="245" y="120" text-anchor="middle" dominant-baseline="central">2</text><text class="ts" x="245" y="138" text-anchor="middle" dominant-baseline="central">Qual modo?</text></g>
+    <line x1="312" y1="126" x2="328" y2="126" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#ar7)"/>
+    <g class="c-purple"><rect x="330" y="96" width="130" height="60" rx="8" stroke-width="0.5"/><text class="th" x="395" y="120" text-anchor="middle" dominant-baseline="central">3</text><text class="ts" x="395" y="138" text-anchor="middle" dominant-baseline="central">Aplique os 4Ds</text></g>
+    <line x1="462" y1="126" x2="478" y2="126" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#ar7)"/>
+    <g class="c-amber"><rect x="480" y="96" width="130" height="60" rx="8" stroke-width="0.5"/><text class="th" x="545" y="120" text-anchor="middle" dominant-baseline="central">4</text><text class="ts" x="545" y="138" text-anchor="middle" dominant-baseline="central">Compartilhe (1 min)</text></g>
+    <rect class="box" x="30" y="190" width="580" height="60" rx="10" stroke-width="0.5"/>
+    <text class="ts" x="320" y="215" text-anchor="middle" dominant-baseline="central">Próxima aula: prompting eficaz — aplicando Descrição</text>
+    <text class="ts" x="320" y="237" text-anchor="middle" dominant-baseline="central">de produto, processo e desempenho na prática</text>
+  </svg>`
+};
+
+// ── Conteúdo dos blocos ────────────────────────────────────
+const CONTEUDOS = {
+  1: {
+    eye:"Abertura · 0–10 min",
+    titulo:"Ter acesso à IA não é o mesmo que ser fluente nela",
+    corpo:`<p>A frustração que muita gente sente ao usar Claude ou ChatGPT tem um nome: é a <strong>lacuna entre ter acesso a uma ferramenta poderosa e saber colaborar com ela de verdade.</strong></p>
+    <div class="destaque"><h4>O que é Fluência em IA?</h4><p>Interagir com sistemas de IA de formas eficazes, eficientes, éticas e seguras. Não é sobre decorar prompts — é sobre desenvolver habilidades que continuam relevantes mesmo quando a tecnologia muda.</p></div>`,
+    temPergunta:true
+  },
+  2: {
+    eye:"Por que fluência · 10–25 min",
+    titulo:"A IA está mudando como trabalhamos — mas exige uma nova habilidade",
+    corpo:`<p>A IA está transformando como nos comunicamos, criamos e resolvemos problemas. Mas ter acesso a esses sistemas não significa automaticamente saber tirar o máximo deles.</p>
+    <p>Fluência em IA é o que preenche essa lacuna — não com truques, mas com competências que duram.</p>`,
+    temPergunta:false
+  },
+  3: {
+    eye:"Os 3 modos · 25–40 min",
+    titulo:"Existem 3 formas de trabalhar com IA — a maioria usa só uma",
+    corpo:`<div class="modos">
+      <div class="modo m1"><div class="modo-num n1">1</div><div class="modo-body"><h4>Automação</h4><p>Você instrui, a IA executa. Bom quando o resultado é claro.</p><div class="modo-ex">Ex: "Resuma este contrato em 5 pontos."</div></div></div>
+      <div class="modo m2"><div class="modo-num n2">2</div><div class="modo-body"><h4>Aumento ★</h4><p>Você e a IA colaboram. A IA não faz por você — faz melhor com você.</p><div class="modo-ex">Ex: Explorar estratégia de negociação juntos.</div></div></div>
+      <div class="modo m3"><div class="modo-num n3">3</div><div class="modo-body"><h4>Agência</h4><p>A IA age em seu nome dentro de limites que você define.</p><div class="modo-ex">Ex: Monitoramento automático de prazos.</div></div></div>
+    </div>`,
+    temPergunta:true
+  },
+  4: {
+    eye:"Framework 4D · 40–55 min",
+    titulo:"Os 4Ds — as competências que fazem toda a diferença",
+    corpo:`<div class="quadro4d">
+      <div class="dcard d1"><div class="dcard-label l1">Delegação</div><h4>Quando usar IA?</h4><p>Entender o problema e distribuir o trabalho estrategicamente.</p></div>
+      <div class="dcard d2"><div class="dcard-label l2">Descrição</div><h4>Como comunicar?</h4><p>Produto, processo e desempenho — muito além de escrever prompts.</p></div>
+      <div class="dcard d3"><div class="dcard-label l3">Discernimento</div><h4>Como avaliar?</h4><p>Seu controle de qualidade sobre o que a IA produz.</p></div>
+      <div class="dcard d4"><div class="dcard-label l4">Diligência</div><h4>Como usar responsavelmente?</h4><p>Segurança, transparência e responsabilidade pelo resultado.</p></div>
+    </div>
+    <p>O que torna os 4Ds valiosos: funcionam com qualquer IA, hoje e no futuro.</p>`,
+    temPergunta:false
+  },
+  5: {
+    eye:"Como funciona a IA · 55–70 min",
+    titulo:"O que mudou em 2017 — e por que Claude consegue ler seu contrato inteiro",
+    corpo:`<p>Antes de 2017, a IA processava texto palavra por palavra, em fila — esquecendo o começo antes de chegar ao fim.</p>
+    <div class="destaque"><h4>O paper que mudou tudo</h4><p>"Attention Is All You Need" (Google, 2017) — o mecanismo de atenção permitiu que todas as palavras fossem processadas ao mesmo tempo. Contexto longo, finalmente possível.</p></div>
+    <p>Hoje Claude lê até 200.000 tokens de uma vez — um contrato inteiro, um processo judicial completo.</p>`,
+    temPergunta:false
+  },
+  6: {
+    eye:"Capacidades e limitações · 70–85 min",
+    titulo:"O que Claude faz bem — e as 6 limitações que você precisa conhecer",
+    corpo:`<div class="limits">
+      <div class="limit"><div class="limit-ico">📅</div><div><h4>Data de corte</h4><p>Não sabe sobre eventos após o treinamento.</p></div></div>
+      <div class="limit"><div class="limit-ico">⚠️</div><div><h4>Alucinação</h4><p>Pode inventar fatos com total confiança — leis, jurisprudências, números.</p></div></div>
+      <div class="limit"><div class="limit-ico">📏</div><div><h4>Janela de contexto</h4><p>Conversas muito longas podem perder o início.</p></div></div>
+      <div class="limit"><div class="limit-ico">🎲</div><div><h4>Respostas variáveis</h4><p>A mesma pergunta pode ter respostas diferentes.</p></div></div>
+      <div class="limit"><div class="limit-ico">🔒</div><div><h4>Acesso limitado</h4><p>Não sabe nada sobre o banco de dados interno da empresa.</p></div></div>
+    </div>
+    <div class="alerta"><div class="alerta-ico">⚖️</div><div><h4>Caso real — Mata v. Avianca (2023)</h4><p>Advogados punidos por citar jurisprudências inventadas pelo ChatGPT. <strong>Claude auxilia, você verifica, você assina.</strong></p></div></div>`,
+    temPergunta:true
+  },
+  7: {
+    eye:"Exercício · 85–90 min",
+    titulo:"Exercício prático — meu primeiro mapeamento 4D",
+    corpo:`<ol style="padding-left:20px;font-size:14px;line-height:2;">
+      <li>Escolha uma tarefa repetitiva da sua área</li>
+      <li>Identifique o modo: automação, aumento ou agência</li>
+      <li>Aplique os 4Ds: o que delegaria? Como descreveria? O que verificaria? Que cuidados teria?</li>
+      <li>Compartilhe em 1 minuto</li>
+    </ol>
+    <div class="checklist" style="margin-top:20px;">
+      <h4>O que aprendi nesta aula</h4>
+      <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Entendo a diferença entre automação, aumento e agência</div></div>
+      <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Sei o que são os 4Ds e para que serve cada um</div></div>
+      <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Entendo por que o Transformer mudou a IA em 2017</div></div>
+      <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Conheço as limitações reais do Claude</div></div>
+      <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-text">Sei: Claude auxilia, eu verifico, eu assino</div></div>
+    </div>`,
+    temPergunta:true
+  }
+};
+
+// ── WebSocket ──────────────────────────────────────────────
+function conectarWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+
+  ws.onopen = () => {
+    wsReady = true;
+    if (nomeAluno) {
+      ws.send(JSON.stringify({ type: 'aluno_connect', nome: nomeAluno }));
+    }
+  };
+
+  ws.onclose = () => {
+    wsReady = false;
+    setTimeout(conectarWS, 3000);
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state_update') handleStateUpdate(msg);
+    if (msg.type === 'nova_pergunta') handleNovaPergunta(msg);
+    if (msg.type === 'resposta_confirmada') handleRespostaConfirmada(msg);
+    if (msg.type === 'mostrar_bolhas') mostrarBolhas(msg.respostas);
+    if (msg.type === 'fechar_bolhas') fecharBolhasOverlay();
+  };
+}
+
+function wsSend(data) {
+  if (wsReady) ws.send(JSON.stringify(data));
+}
+
+function handleStateUpdate(msg) {
+  const liberado = msg.blocoLiberado ?? 0;
+  const anterior = blocoAtualRender;
+
+  const ag = document.getElementById('aguardando');
+  if (ag) ag.style.display = liberado >= 0 ? 'none' : 'block';
+
+  // Renderizar blocos liberados (do 1 até liberado+1)
+  for (let i = 1; i <= liberado + 1 && i <= 7; i++) {
+    if (!document.getElementById(`b${i}`)) {
+      document.getElementById('blocos').insertAdjacentHTML('beforeend', renderBloco(i));
+    }
+  }
+
+  const pct = Math.round(((liberado + 1) / 7) * 100);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('pct-label').textContent = pct + '%';
+  document.getElementById('bloco-label').textContent = `Bloco ${liberado + 1} de 7`;
+
+  // Detecta avanço: professor liberou um bloco novo (não conta o primeiro carregamento)
+  if (anterior >= 0 && liberado > anterior) {
+    const numNovoBloco = liberado + 1; // o bloco recém-revelado
+    mostrarAvanco(numNovoBloco);
+  }
+
+  blocoAtualRender = liberado;
+
+  // Restaurar pergunta ativa se houver
+  if (msg.perguntaAtiva) {
+    handleNovaPergunta(msg.perguntaAtiva);
+  }
+}
+
+function mostrarAvanco(numBloco) {
+  const titulos = {
+    1:'Abertura e gancho', 2:'Por que fluência em IA?',
+    3:'Os 3 modos de interação', 4:'O Framework 4D',
+    5:'O que é IA Generativa', 6:'Capacidades e limitações',
+    7:'Exercício + Fechamento'
+  };
+  const notif = document.getElementById('avanco-notif');
+  document.getElementById('avanco-num').textContent = `Bloco ${numBloco} de 7`;
+  document.getElementById('avanco-titulo').textContent = titulos[numBloco] || '';
+
+  // Cancela qualquer avanço anterior ainda em curso
+  if (avancoTimer) clearTimeout(avancoTimer);
+
+  notif.classList.add('show');
+
+  avancoTimer = setTimeout(() => {
+    notif.classList.remove('show');
+    // Scrolla para o novo bloco depois da notif começar a sair
+    setTimeout(() => {
+      const el = document.getElementById(`b${numBloco}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+  }, 2200);
+}
+
+function handleNovaPergunta(msg) {
+  const paEl = document.getElementById(`perg-aluno-${msg.blocoId}`);
+  const ptEl = document.getElementById(`perg-texto-${msg.blocoId}`);
+  if (paEl) paEl.style.display = 'block';
+  if (ptEl) ptEl.textContent = msg.texto;
+}
+
+function handleRespostaConfirmada(msg) {
+  respostasEnviadas.add(msg.blocoId);
+  const input = document.getElementById(`perg-resp-${msg.blocoId}`);
+  const sent = document.getElementById(`perg-sent-${msg.blocoId}`);
+  if (input) input.disabled = true;
+  if (sent) sent.style.display = 'block';
+}
+
+// ── Render ─────────────────────────────────────────────────
+function renderBloco(num) {
+  const c = CONTEUDOS[num];
+  const svgStr = SVGs[num] || '';
+  const jaRespondeu = respostasEnviadas.has(num);
+
+  const pergHTML = c.temPergunta ? `
+    <div class="pergunta-aluno" id="perg-aluno-${num}" style="display:none;">
+      <div class="pa-eye">Pergunta do professor</div>
+      <div class="pa-texto" id="perg-texto-${num}"></div>
+      <div class="pa-input">
+        <input type="text" id="perg-resp-${num}" placeholder="Sua resposta..."
+          ${jaRespondeu ? 'disabled' : ''}
+          onkeydown="if(event.key==='Enter')enviarResp(${num})">
+        <button class="pa-btn" onclick="enviarResp(${num})" ${jaRespondeu ? 'disabled' : ''}>Responder</button>
+      </div>
+      <div class="pa-sent" id="perg-sent-${num}" style="${jaRespondeu ? 'display:block' : 'display:none'}">Resposta enviada!</div>
+    </div>
+  ` : '';
+
+  return `
+    <div class="bloco entrando" id="b${num}" data-num="${num}">
+      <div class="bloco-visual">${svgStr}</div>
+      <div class="bloco-conteudo">
+        <div class="bloco-eye">${c.eye}</div>
+        <h2>${c.titulo}</h2>
+        ${c.corpo}
+      </div>
+      ${pergHTML}
+    </div>
+  `;
+}
+
+function enviarResp(num) {
+  const input = document.getElementById(`perg-resp-${num}`);
+  const texto = input.value.trim();
+  if (!texto) return;
+  wsSend({ type: 'resposta_pergunta', texto, blocoId: num });
+  // Feedback otimista — confirmação real chega via resposta_confirmada
+  input.disabled = true;
+  document.getElementById(`perg-sent-${num}`).style.display = 'block';
+  respostasEnviadas.add(num);
+}
+
+function toggleCheck(el) {
+  el.querySelector('.check-box').classList.toggle('done');
+}
+
+// ── Entrada ────────────────────────────────────────────────
+function entrar() {
+  const nome = document.getElementById('nome-input').value.trim();
+  if (!nome) return alert('Por favor, informe seu nome.');
+  nomeAluno = nome;
+  document.getElementById('nome-modal').style.display = 'none';
+  wsSend({ type: 'aluno_connect', nome });
+}
+
+// ── Bolhas ─────────────────────────────────────────────────
+// Paleta de cores para nomes (rotativa)
+const CORES_BOLHA = [
+  '#2d5fa3','#1a7a45','#6238a8','#b8620a',
+  '#a82828','#0e7490','#7c3aed','#be185d',
+  '#15803d','#b45309','#1d4ed8','#9f1239',
+];
+
+function mostrarBolhas(respostas) {
+  const overlay = document.getElementById('bolhas-overlay');
+  const container = document.getElementById('bolhas-container');
+  container.innerHTML = '';
+  overlay.style.display = 'block';
+
+  // Espelha scroll para que o conteúdo não interfira
+  document.body.style.overflow = 'hidden';
+
+  const total = respostas.length;
+
+  // Divide o espaço em zonas para evitar aglomeração
+  // Zona: grade de células, cada bolha entra numa célula com jitter
+  const cols = Math.max(2, Math.min(4, Math.ceil(Math.sqrt(total * 1.4))));
+  const rows = Math.ceil(total / cols);
+  const cellW = 90 / cols;   // % — deixa margens nas bordas
+  const cellH = 90 / rows;   // %
+
+  respostas.forEach((r, idx) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+
+    const leftBase = 5 + col * cellW;
+    const topBase  = 5 + row * cellH;
+    const left = leftBase + (Math.random() * cellW * 0.5);
+    const top  = topBase  + (Math.random() * cellH * 0.5);
+
+    const dur    = (3.5 + Math.random() * 3.5).toFixed(1);
+    const fdelay = (-(Math.random() * 4)).toFixed(1); // fase aleatória
+
+    const cor = CORES_BOLHA[idx % CORES_BOLHA.length];
+
+    const bolha = document.createElement('div');
+    bolha.className = 'bolha';
+    bolha.style.cssText = `left:${left}%;top:${top}%;--dur:${dur}s;--fdelay:${fdelay}s;--cor:${cor};`;
+    // Destaca a própria resposta
+    if (r.nome === nomeAluno) {
+      bolha.style.boxShadow = `0 0 0 2px ${cor}, 0 6px 28px rgba(0,0,0,0.4)`;
+    }
+    bolha.innerHTML = `
+      <div class="bolha-nome" style="color:${cor}">${esc(r.nome)}</div>
+      <div class="bolha-texto">${esc(r.texto)}</div>
+    `;
+    container.appendChild(bolha);
+  });
+}
+
+function fecharBolhasOverlay() {
+  document.getElementById('bolhas-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Fecha overlay com ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharBolhasOverlay();
+});
+
+conectarWS();
+</script>
+</body>
+</html>
