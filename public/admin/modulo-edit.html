@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editar Módulo — Admin Zatto</title>
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.editor-layout{display:grid;grid-template-columns:260px 1fr;gap:0;height:calc(100vh - 52px);}
+.blocos-panel{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:16px;}
+.editor-panel{overflow-y:auto;padding:20px;}
+.bloco-add-btn{width:100%;background:transparent;border:1.5px dashed var(--border);border-radius:6px;padding:8px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:12px;transition:all .2s;margin-top:8px;}
+.bloco-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.quiz-opcoes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.opcao-row{display:flex;align-items:center;gap:8px;}
+.opcao-letra{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.la{background:#1368ce;}.lb{background:#d89e00;}.lc{background:#26890c;}.ld{background:#e21b3c;}
+.correta-radio{accent-color:var(--green);width:14px;height:14px;cursor:pointer;}
+.section-title{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:16px 0 8px;font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <a href="/admin/dashboard.html" class="btn btn-secondary btn-sm">← Módulos</a>
+    <span class="topbar-badge">EDITOR</span>
+    <span class="topbar-title" id="modulo-titulo-topbar">Carregando...</span>
+  </div>
+  <div class="topbar-right">
+    <span class="autosave-status" id="autosave-status"></span>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<div class="editor-layout">
+
+  <!-- Painel esquerdo: lista de blocos -->
+  <div class="blocos-panel">
+    <div style="font-size:12px;font-weight:600;margin-bottom:10px;">Blocos</div>
+    <div class="blocos-list" id="blocos-list"></div>
+    <button class="bloco-add-btn" onclick="adicionarBloco()">+ Novo bloco</button>
+  </div>
+
+  <!-- Painel direito: editor do bloco selecionado -->
+  <div class="editor-panel" id="editor-panel">
+    <div class="empty" style="margin-top:60px;">
+      <div class="empty-icon">✏️</div>
+      <p>Selecione um bloco à esquerda para editar</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '/api/admin';
+const params = new URLSearchParams(location.search);
+const MODULO_ID = Number(params.get('id'));
+
+let modulo = null;
+let blocos = [];
+let blocoAtivo = null;
+let autosaveTimer = null;
+
+async function apiFetch(method, path, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.erro || `HTTP ${res.status}`);
+  return data;
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function setAutosave(msg, cls = '') {
+  const el = document.getElementById('autosave-status');
+  el.textContent = msg;
+  el.className = 'autosave-status ' + cls;
+}
+
+// ── Inicialização ─────────────────────────────────────────────
+async function init() {
+  if (!MODULO_ID) { location.href = '/admin/dashboard.html'; return; }
+  try {
+    modulo = await apiFetch('GET', '/modulos').then(ms => ms.find(m => m.id === MODULO_ID));
+    if (!modulo) { location.href = '/admin/dashboard.html'; return; }
+    document.getElementById('modulo-titulo-topbar').textContent = modulo.titulo;
+    document.title = modulo.titulo + ' — Admin Zatto';
+    await carregarBlocos();
+  } catch(e) {
+    if (e.message.includes('401')) location.href = '/admin';
+  }
+}
+
+async function carregarBlocos() {
+  blocos = await apiFetch('GET', '/modulos/' + MODULO_ID + '/blocos');
+  renderBlocosList();
+  if (blocoAtivo) {
+    const atualizado = blocos.find(b => b.id === blocoAtivo.id);
+    if (atualizado) selecionarBloco(atualizado);
+  }
+}
+
+function renderBlocosList() {
+  const list = document.getElementById('blocos-list');
+  if (!blocos.length) {
+    list.innerHTML = '<div class="text-muted" style="font-size:12px;padding:8px 0;">Nenhum bloco ainda</div>';
+    return;
+  }
+  list.innerHTML = blocos.map(b => `
+    <div class="bloco-item ${blocoAtivo?.id === b.id ? 'active' : ''}" onclick="selecionarBloco(${b.id})">
+      <span class="bloco-ordem">${String(b.ordem).padStart(2,'0')}</span>
+      <div style="flex:1;min-width:0;">
+        <div class="bloco-item-titulo" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(b.titulo)||'(sem título)'}</div>
+        <div class="bloco-item-eye">${esc(b.eye||'')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function selecionarBloco(blocoOuId) {
+  const id = typeof blocoOuId === 'number' ? blocoOuId : blocoOuId.id;
+  blocoAtivo = blocos.find(b => b.id === id) || blocoAtivo;
+  renderBlocosList();
+
+  const [quizzes, exercicios] = await Promise.all([
+    apiFetch('GET', '/blocos/' + id + '/quizzes'),
+    apiFetch('GET', '/blocos/' + id + '/exercicios'),
+  ]);
+
+  renderEditor(blocoAtivo, quizzes, exercicios);
+}
+
+function renderEditor(bloco, quizzes, exercicios) {
+  document.getElementById('editor-panel').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-size:15px;font-weight:600;">Editar bloco</h2>
+      <button class="btn btn-danger btn-sm" onclick="deletarBloco(${bloco.id})">Deletar bloco</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'tab-conteudo')">Conteúdo</div>
+      <div class="tab" onclick="switchTab(this,'tab-professor')">Roteiro professor</div>
+      <div class="tab" onclick="switchTab(this,'tab-quiz')">Quiz (${quizzes.length})</div>
+      <div class="tab" onclick="switchTab(this,'tab-exercicio')">Exercícios (${exercicios.length})</div>
+    </div>
+
+    <!-- Tab Conteúdo -->
+    <div id="tab-conteudo">
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">Ordem</label><input class="form-input" id="b-ordem" type="number" value="${bloco.ordem}" min="0" onchange="autosave()"></div>
+        <div class="form-group"><label class="form-label">Tempo (min)</label><input class="form-input" id="b-tempo" type="number" value="${bloco.tempo_min}" min="1" max="120" onchange="autosave()"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Eye label <span class="text-muted">(ex: Abertura · 0–10 min)</span></label><input class="form-input" id="b-eye" value="${esc(bloco.eye||'')}" oninput="autosave()"></div>
+      <div class="form-group"><label class="form-label">Título</label><input class="form-input" id="b-titulo" value="${esc(bloco.titulo||'')}" oninput="autosave()"></div>
+      <div class="form-group"><label class="form-label">Corpo HTML</label><textarea class="form-textarea" id="b-corpo" rows="8" oninput="autosave()">${esc(bloco.corpo_html||'')}</textarea></div>
+      <div class="form-group"><label class="form-label">SVG <span class="text-muted">(código completo &lt;svg&gt;...&lt;/svg&gt;)</span></label><textarea class="form-textarea code" id="b-svg" rows="10" oninput="autosave()">${esc(bloco.svg||'')}</textarea></div>
+      <div class="form-group">
+        <label class="form-check">
+          <input type="checkbox" id="b-tem-pergunta" ${bloco.tem_pergunta ? 'checked' : ''} onchange="autosave()">
+          <span>Tem pergunta aberta</span>
+        </label>
+      </div>
+      <div class="form-group" id="pergunta-padrao-group" style="${bloco.tem_pergunta ? '' : 'display:none'}">
+        <label class="form-label">Pergunta padrão</label>
+        <input class="form-input" id="b-pergunta-padrao" value="${esc(bloco.pergunta_padrao||'')}" oninput="autosave()">
+      </div>
+    </div>
+
+    <!-- Tab Roteiro -->
+    <div id="tab-professor" style="display:none">
+      <div class="form-group"><label class="form-label">Fala sugerida</label><textarea class="form-textarea" id="b-roteiro-fala" rows="6" oninput="autosave()">${esc(bloco.roteiro_fala||'')}</textarea></div>
+    </div>
+
+    <!-- Tab Quiz -->
+    <div id="tab-quiz" style="display:none">
+      <div id="quizzes-container">
+        ${quizzes.map(q => renderQuizItem(q)).join('')}
+      </div>
+      <button class="btn btn-secondary btn-sm mt-12" onclick="adicionarQuiz()">+ Adicionar questão</button>
+    </div>
+
+    <!-- Tab Exercício -->
+    <div id="tab-exercicio" style="display:none">
+      <div id="exercicios-container">
+        ${exercicios.map(e => renderExercicioItem(e)).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" onclick="adicionarExercicio('cenario_4d')">+ Cenário 4D</button>
+        <button class="btn btn-secondary btn-sm" onclick="adicionarExercicio('chat_livre')">+ Chat Claude</button>
+        <button class="btn btn-secondary btn-sm" onclick="adicionarExercicio('reflexao')">+ Reflexão</button>
+      </div>
+    </div>
+  `;
+
+  // Toggle pergunta padrão
+  document.getElementById('b-tem-pergunta').addEventListener('change', function() {
+    document.getElementById('pergunta-padrao-group').style.display = this.checked ? '' : 'none';
+  });
+}
+
+function renderQuizItem(q) {
+  return `
+    <div class="sub-item" id="quiz-${q.id}">
+      <div class="sub-item-body">
+        <div class="sub-item-tipo">Quiz · ${q.tempo_seg}s</div>
+        <div class="form-group mb-0"><label class="form-label">Pergunta</label>
+          <input class="form-input" value="${esc(q.pergunta)}" onchange="salvarQuiz(${q.id}, this)"></div>
+        <div class="quiz-opcoes-grid" style="margin-top:8px;">
+          ${['a','b','c','d'].map((l,i) => `
+            <div class="opcao-row">
+              <div class="opcao-letra l${l}">${l.toUpperCase()}</div>
+              <input class="form-input" style="flex:1" value="${esc(q['opcao_'+l])}" onchange="salvarQuiz(${q.id}, this)">
+              <input type="radio" class="correta-radio" name="correta-${q.id}" value="${i}" ${q.correta===i?'checked':''} onchange="salvarQuiz(${q.id}, this)">
+            </div>`).join('')}
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+          <label class="form-label" style="margin:0;">Tempo (s)</label>
+          <input class="form-input" type="number" style="width:80px;" value="${q.tempo_seg}" min="5" max="120" onchange="salvarQuiz(${q.id}, this)">
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deletarQuiz(${q.id})">✕</button>
+    </div>`;
+}
+
+function renderExercicioItem(e) {
+  const nomes = { cenario_4d:'📋 Cenário 4D', chat_livre:'💬 Chat Claude', reflexao:'🪞 Reflexão Final' };
+  return `
+    <div class="sub-item" id="exercicio-${e.id}">
+      <div class="sub-item-body">
+        <div class="sub-item-tipo">${nomes[e.tipo]||e.tipo}</div>
+        <div class="text-muted" style="font-size:11px;">Ordem: ${e.ordem}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deletarExercicio(${e.id})">✕</button>
+    </div>`;
+}
+
+// ── Autosave ──────────────────────────────────────────────────
+function autosave() {
+  clearTimeout(autosaveTimer);
+  setAutosave('Editando...', 'saving');
+  autosaveTimer = setTimeout(salvarBloco, 1500);
+}
+
+async function salvarBloco() {
+  if (!blocoAtivo) return;
+  setAutosave('Salvando...', 'saving');
+  try {
+    const body = {
+      eye:             document.getElementById('b-eye')?.value || '',
+      titulo:          document.getElementById('b-titulo')?.value || '',
+      corpo_html:      document.getElementById('b-corpo')?.value || '',
+      svg:             document.getElementById('b-svg')?.value || '',
+      tempo_min:       Number(document.getElementById('b-tempo')?.value) || 10,
+      ordem:           Number(document.getElementById('b-ordem')?.value) || 0,
+      tem_pergunta:    document.getElementById('b-tem-pergunta')?.checked || false,
+      pergunta_padrao: document.getElementById('b-pergunta-padrao')?.value || null,
+      roteiro_fala:    document.getElementById('b-roteiro-fala')?.value || '',
+    };
+    await apiFetch('PUT', '/blocos/' + blocoAtivo.id, body);
+    setAutosave('Salvo ✓', 'saved');
+    // Atualiza título na sidebar
+    blocoAtivo = { ...blocoAtivo, ...body };
+    blocos = blocos.map(b => b.id === blocoAtivo.id ? { ...b, ...body } : b);
+    renderBlocosList();
+  } catch(e) {
+    setAutosave('Erro ao salvar', '');
+  }
+}
+
+// ── Blocos ────────────────────────────────────────────────────
+async function adicionarBloco() {
+  const ordem = blocos.length ? Math.max(...blocos.map(b => b.ordem)) + 1 : 1;
+  try {
+    const novo = await apiFetch('POST', '/modulos/' + MODULO_ID + '/blocos', {
+      titulo: 'Novo bloco', corpo_html: '', svg: '', tempo_min: 10, ordem,
+    });
+    await carregarBlocos();
+    selecionarBloco(novo.id);
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function deletarBloco(id) {
+  if (!confirm('Deletar este bloco e todos os seus quizzes e exercícios?')) return;
+  try {
+    await apiFetch('DELETE', '/blocos/' + id);
+    blocoAtivo = null;
+    document.getElementById('editor-panel').innerHTML = '<div class="empty" style="margin-top:60px;"><div class="empty-icon">✏️</div><p>Selecione um bloco à esquerda para editar</p></div>';
+    await carregarBlocos();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+// ── Quizzes ───────────────────────────────────────────────────
+async function adicionarQuiz() {
+  if (!blocoAtivo) return;
+  try {
+    await apiFetch('POST', '/blocos/' + blocoAtivo.id + '/quizzes', {
+      pergunta: 'Nova pergunta?', opcao_a: 'Opção A', opcao_b: 'Opção B',
+      opcao_c: 'Opção C', opcao_d: 'Opção D', correta: 0, tempo_seg: 20, ordem: 0,
+    });
+    selecionarBloco(blocoAtivo.id);
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function salvarQuiz(id, changedEl) {
+  const container = document.getElementById('quiz-' + id);
+  if (!container) return;
+  const inputs = container.querySelectorAll('input');
+  const pergunta = container.querySelector('input[type="text"]')?.value || '';
+  const opcoes   = container.querySelectorAll('.opcao-row input[type="text"]');
+  const corretaEl = container.querySelector('input[type="radio"]:checked');
+  const tempoEl  = container.querySelector('input[type="number"]');
+  try {
+    await apiFetch('PUT', '/quizzes/' + id, {
+      pergunta, opcao_a: opcoes[0]?.value||'', opcao_b: opcoes[1]?.value||'',
+      opcao_c: opcoes[2]?.value||'', opcao_d: opcoes[3]?.value||'',
+      correta: corretaEl ? Number(corretaEl.value) : 0,
+      tempo_seg: Number(tempoEl?.value)||20, ordem: 0,
+    });
+    setAutosave('Salvo ✓', 'saved');
+    setTimeout(() => setAutosave(''), 2000);
+  } catch(e) { setAutosave('Erro: ' + e.message, ''); }
+}
+
+async function deletarQuiz(id) {
+  if (!confirm('Deletar esta questão?')) return;
+  await apiFetch('DELETE', '/quizzes/' + id);
+  selecionarBloco(blocoAtivo.id);
+}
+
+// ── Exercícios ────────────────────────────────────────────────
+async function adicionarExercicio(tipo) {
+  if (!blocoAtivo) return;
+  try {
+    await apiFetch('POST', '/blocos/' + blocoAtivo.id + '/exercicios', { tipo, ordem: 0 });
+    selecionarBloco(blocoAtivo.id);
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+async function deletarExercicio(id) {
+  if (!confirm('Deletar este exercício?')) return;
+  await apiFetch('DELETE', '/exercicios/' + id);
+  selecionarBloco(blocoAtivo.id);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(tabEl, targetId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  ['tab-conteudo','tab-professor','tab-quiz','tab-exercicio'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === targetId ? '' : 'none';
+  });
+}
+
+async function logout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  location.href = '/admin';
+}
+
+init();
+</script>
+</body>
+</html>

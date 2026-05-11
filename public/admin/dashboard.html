@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Admin Zatto</title>
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <span class="topbar-badge">ADMIN</span>
+    <span class="topbar-title">Zatto Escola</span>
+  </div>
+  <div class="topbar-right">
+    <span class="text-muted" id="username-label" style="font-size:12px;"></span>
+    <button class="btn btn-secondary btn-sm" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-section">Conteúdo</div>
+    <a class="sidebar-item active" href="/admin/dashboard.html">📚 Módulos</a>
+    <div class="sidebar-section" style="margin-top:12px;">Sistema</div>
+    <a class="sidebar-item" href="/professor.html" target="_blank">🎓 Painel Professor</a>
+  </nav>
+
+  <div class="main-content">
+    <div class="flex gap-12" style="margin-bottom:20px;justify-content:space-between;align-items:center;">
+      <div>
+        <h1 style="font-size:18px;font-weight:600;">Módulos do curso</h1>
+        <p class="text-muted" style="font-size:12px;margin-top:3px;">Gerencie o conteúdo das aulas</p>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalNovoModulo()">+ Novo módulo</button>
+    </div>
+
+    <div id="alert" class="alert alert-hidden"></div>
+    <div id="modulos-list"><div class="empty"><div class="empty-icon">📦</div><p>Carregando módulos...</p></div></div>
+  </div>
+</div>
+
+<!-- Modal novo módulo -->
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;" onclick="fecharModal(event)">
+  <div class="card" style="width:100%;max-width:440px;margin:24px;" onclick="event.stopPropagation()">
+    <div class="card-header">
+      <h2>Novo módulo</h2>
+      <button class="btn btn-secondary btn-sm" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">Slug <span class="text-muted">(somente letras, números e hífens)</span></label>
+        <input class="form-input" id="m-slug" placeholder="ex: modulo-1" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título</label>
+        <input class="form-input" id="m-titulo" placeholder="ex: Aula 1.1 — Prompting Eficaz">
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group mb-0">
+          <label class="form-label">Subtítulo</label>
+          <input class="form-input" id="m-subtitulo" placeholder="Módulo 1 · 60 min">
+        </div>
+        <div class="form-group mb-0">
+          <label class="form-label">Duração (min)</label>
+          <input class="form-input" id="m-duracao" type="number" value="90" min="1" max="600">
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="criarModulo()">Criar módulo →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/admin';
+
+async function api(method, path, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.erro || `HTTP ${res.status}`);
+  return data;
+}
+
+function showAlert(msg, tipo = 'success') {
+  const el = document.getElementById('alert');
+  el.textContent = msg;
+  el.className = `alert alert-${tipo}`;
+  setTimeout(() => el.className = 'alert alert-hidden', 3000);
+}
+
+async function logout() {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  location.href = '/admin';
+}
+
+async function carregarModulos() {
+  try {
+    const modulos = await api('GET', '/modulos');
+    const list = document.getElementById('modulos-list');
+    if (!modulos.length) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><p>Nenhum módulo ainda.</p><button class="btn btn-primary" onclick="abrirModalNovoModulo()">+ Criar primeiro módulo</button></div>';
+      return;
+    }
+    list.innerHTML = modulos.map(m => `
+      <div class="modulo-card">
+        <div class="modulo-info">
+          <div class="modulo-slug mono">${m.slug}</div>
+          <div class="modulo-titulo">${esc(m.titulo)}</div>
+          <div class="modulo-meta">
+            ${m.duracao_min} min · ${m.total_blocos} bloco${m.total_blocos !== 1 ? 's' : ''}
+            &nbsp;<span class="badge-pub ${m.publicado ? 'on' : 'off'}">${m.publicado ? 'publicado' : 'rascunho'}</span>
+          </div>
+        </div>
+        <div class="modulo-actions">
+          <button class="btn btn-secondary btn-sm" onclick="togglePublicar(${m.id}, ${m.publicado})">${m.publicado ? 'Despublicar' : 'Publicar'}</button>
+          <button class="btn btn-primary btn-sm" onclick="editarModulo(${m.id})">Editar →</button>
+          <button class="btn btn-danger btn-sm" onclick="deletarModulo(${m.id}, '${esc(m.titulo)}')">✕</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    if (e.message.includes('401') || e.message.includes('autenticado')) {
+      location.href = '/admin';
+    }
+  }
+}
+
+async function togglePublicar(id, atual) {
+  try {
+    await api('PUT', '/modulos/' + id + '/publicar');
+    showAlert(atual ? 'Módulo despublicado' : 'Módulo publicado');
+    carregarModulos();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+function editarModulo(id) {
+  location.href = '/admin/modulo-edit.html?id=' + id;
+}
+
+async function deletarModulo(id, titulo) {
+  if (!confirm(`Deletar "${titulo}" e todos os seus blocos, quizzes e exercícios?\n\nEsta ação não pode ser desfeita.`)) return;
+  try {
+    await api('DELETE', '/modulos/' + id);
+    showAlert('Módulo deletado');
+    carregarModulos();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+function abrirModalNovoModulo() {
+  document.getElementById('modal-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('m-slug').focus(), 50);
+}
+
+function fecharModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').style.display = 'none';
+  }
+}
+
+async function criarModulo() {
+  const slug      = document.getElementById('m-slug').value.trim();
+  const titulo    = document.getElementById('m-titulo').value.trim();
+  const subtitulo = document.getElementById('m-subtitulo').value.trim();
+  const duracao   = Number(document.getElementById('m-duracao').value) || 90;
+  if (!slug || !titulo) { showAlert('Slug e título são obrigatórios', 'error'); return; }
+  try {
+    await api('POST', '/modulos', { slug, titulo, subtitulo: subtitulo || null, duracao_min: duracao, ordem: 0 });
+    fecharModal();
+    showAlert('Módulo criado!');
+    carregarModulos();
+    ['m-slug','m-titulo','m-subtitulo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('m-duracao').value = '90';
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Init
+api('GET', '/me').then(d => {
+  document.getElementById('username-label').textContent = d.username;
+}).catch(() => location.href = '/admin');
+
+carregarModulos();
+</script>
+</body>
+</html>
