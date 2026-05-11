@@ -9,11 +9,26 @@ const wss = new WebSocketServer({ server });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Código da sala ───────────────────────────────────────────
+function gerarCodigo() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+let roomCode = gerarCodigo();
+
+app.get('/api/join', (req, res) => {
+  const code = (req.query.code || '').toUpperCase().trim();
+  res.json({ valid: code === roomCode });
+});
+
+app.get('/api/room-code', (req, res) => {
+  res.json({ code: roomCode });
+});
+
 // Estado da aula em memória
 let aulaState = {
-  blocoLiberado: 0,
-  perguntaAtiva: null,   // { blocoId, texto, ts }
-  respostas: [],         // [{ nome, texto, ts }]
+  blocoLiberado: -1,
+  perguntaAtiva: null,
+  respostas: [],
 };
 
 // Clientes separados por tipo
@@ -143,6 +158,13 @@ wss.on('connection', (ws) => {
           respostas: [],
         };
         broadcastState();
+        break;
+      }
+
+      case 'regenerar_codigo': {
+        if (!professores.has(ws)) break;
+        roomCode = gerarCodigo();
+        ws.send(JSON.stringify({ type: 'novo_codigo', code: roomCode }));
         break;
       }
     }

@@ -15,13 +15,28 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .topbar-meta{display:flex;align-items:center;gap:14px;font-size:12px;opacity:.7;}
 .prog-outer{background:rgba(255,255,255,.15);height:3px;border-radius:2px;overflow:hidden;width:80px;}
 .prog-inner{height:100%;background:#fff;border-radius:2px;transition:width .5s;}
-.hero{background:var(--text);color:#f7f5f0;border-bottom:3px solid var(--bg3);}
-.hero-inner{max-width:760px;margin:0 auto;padding:48px 24px 40px;}
+.hero{background:var(--text);color:#f7f5f0;min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;}
+.hero-inner{max-width:760px;margin:0 auto;padding:56px 24px 0;width:100%;}
 .hero-eye{font-size:11px;letter-spacing:.14em;opacity:.45;text-transform:uppercase;margin-bottom:10px;}
-.hero h1{font-family:'Fraunces',serif;font-size:36px;font-weight:600;line-height:1.15;margin-bottom:12px;max-width:520px;}
+.hero h1{font-family:'Fraunces',serif;font-size:42px;font-weight:600;line-height:1.1;margin-bottom:14px;max-width:560px;}
 .hero p{font-size:14px;opacity:.65;max-width:480px;line-height:1.65;margin-bottom:24px;}
 .hero-pills{display:flex;gap:8px;flex-wrap:wrap;}
 .pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:4px 14px;font-size:11px;opacity:.8;}
+/* Professor card */
+.prof-section{border-top:1px solid rgba(255,255,255,.08);margin-top:40px;}
+.prof-inner{max-width:760px;margin:0 auto;padding:32px 24px;display:flex;align-items:center;gap:24px;}
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0077B5,#00a0dc);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;font-family:'Fraunces',serif;letter-spacing:-.02em;border:2px solid rgba(255,255,255,.15);}
+.prof-info{flex:1;}
+.prof-label{font-size:10px;letter-spacing:.14em;opacity:.4;text-transform:uppercase;margin-bottom:4px;}
+.prof-name{font-family:'Fraunces',serif;font-size:20px;font-weight:500;margin-bottom:3px;}
+.prof-bio{font-size:12px;opacity:.55;line-height:1.5;margin-bottom:10px;max-width:380px;}
+.prof-linkedin{display:inline-flex;align-items:center;gap:7px;background:#0077B5;color:#fff;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;text-decoration:none;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.prof-linkedin:hover{opacity:.85;}
+.prof-linkedin svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
+/* Status aguardando */
+.hero-status{max-width:760px;margin:0 auto;padding:20px 24px 32px;display:flex;align-items:center;gap:8px;font-size:12px;opacity:.35;}
+.pulse-dot{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:pulse 1.5s ease infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
 .page-center{max-width:760px;margin:0 auto;}
 .blocos{padding:0;}
 .bloco{border-bottom:2px solid var(--bg3);overflow:hidden;}
@@ -101,6 +116,31 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .pulse{display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 1.5s ease infinite;margin-right:6px;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
+/* ── Lobby overlay ── */
+#lobby{position:fixed;inset:0;background:#0d1117;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease;}
+#lobby.saindo{opacity:0;pointer-events:none;}
+.lobby-card{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:48px 40px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:28px;}
+.lobby-brand{text-align:center;}
+.lobby-badge{display:inline-block;background:#58a6ff;color:#0d1117;font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:4px;margin-bottom:12px;}
+.lobby-brand h1{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:#e6edf3;line-height:1.2;}
+.lobby-brand p{font-size:13px;color:#7d8590;margin-top:6px;}
+.lobby-step{display:flex;flex-direction:column;gap:16px;}
+.lobby-step.hidden{display:none;}
+.lobby-label{font-size:11px;font-weight:600;letter-spacing:.08em;color:#7d8590;text-transform:uppercase;margin-bottom:6px;display:block;}
+.lobby-code-input{background:#0d1117;border:1.5px solid #30363d;border-radius:8px;padding:14px 16px;font-size:28px;font-weight:600;color:#e6edf3;font-family:'DM Sans',monospace;letter-spacing:.25em;text-align:center;text-transform:uppercase;width:100%;outline:none;transition:border-color .2s;}
+.lobby-code-input:focus{border-color:#58a6ff;}
+.lobby-code-input::placeholder{color:#30363d;letter-spacing:.1em;font-size:22px;}
+.lobby-name-input{background:#0d1117;border:1.5px solid #30363d;border-radius:8px;padding:12px 16px;font-size:15px;color:#e6edf3;width:100%;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;}
+.lobby-name-input:focus{border-color:#58a6ff;}
+.lobby-name-input::placeholder{color:#3d444d;}
+.lobby-btn{background:#58a6ff;color:#0d1117;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.lobby-btn:hover{opacity:.88;}
+.lobby-btn:disabled{opacity:.4;cursor:not-allowed;}
+.lobby-error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f85149;display:none;text-align:center;}
+.lobby-error.show{display:block;}
+.lobby-back{background:transparent;border:none;color:#7d8590;font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-align:center;}
+.lobby-back:hover{color:#e6edf3;}
+
 /* ── Bolhas overlay ── */
 #bolhas-overlay{position:fixed;inset:0;background:rgba(15,12,8,0.92);z-index:500;display:none;overflow:hidden;}
 #bolhas-titulo{position:absolute;top:0;left:0;right:0;padding:20px 24px;text-align:center;font-family:'Fraunces',serif;font-size:15px;font-weight:300;color:rgba(255,255,255,0.35);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;}
@@ -175,6 +215,27 @@ svg text{fill:var(--text);}
       <div class="pill">Certificável</div>
     </div>
   </div>
+
+  <div>
+    <div class="prof-section">
+      <div class="prof-inner">
+        <div class="prof-avatar">SB</div>
+        <div class="prof-info">
+          <div class="prof-label">Ministrado por</div>
+          <div class="prof-name">Sairon Busatto</div>
+          <div class="prof-bio">Especialista em IA Aplicada e Educação Tecnológica. Ajudando equipes a desenvolver fluência real com inteligência artificial.</div>
+          <a class="prof-linkedin" href="https://www.linkedin.com/in/sairon-busatto-46297887/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Conectar no LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-status" id="hero-status">
+      <div class="pulse-dot"></div>
+      <span>Aguardando o professor iniciar a aula...</span>
+    </div>
+  </div>
 </div>
 
 <div class="page-center">
@@ -199,15 +260,40 @@ svg text{fill:var(--text);}
   <div id="bolhas-container"></div>
 </div>
 
-<!-- Modal nome -->
-<div id="nome-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;">
-  <div style="background:#fff;border-radius:14px;padding:32px;width:320px;text-align:center;">
-    <h3 style="font-family:'Fraunces',serif;font-size:22px;margin-bottom:8px;">Bem-vindo!</h3>
-    <p style="font-size:13px;color:#666;margin-bottom:20px;">Como você quer ser identificado na aula?</p>
-    <input type="text" id="nome-input" placeholder="Seu nome ou apelido"
-      style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:12px;font-family:'DM Sans',sans-serif;"
-      onkeydown="if(event.key==='Enter')entrar()">
-    <button onclick="entrar()" style="width:100%;background:#1c1a16;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Entrar na aula</button>
+<!-- Lobby de entrada -->
+<div id="lobby">
+  <div class="lobby-card">
+    <div class="lobby-brand">
+      <span class="lobby-badge">ZATTO ESCOLA</span>
+      <h1>Bem-vindo à Aula</h1>
+      <p>Digite o código fornecido pelo seu professor</p>
+    </div>
+
+    <!-- Etapa 1: Código -->
+    <div class="lobby-step" id="step-codigo">
+      <div>
+        <label class="lobby-label">Código da sala</label>
+        <input class="lobby-code-input" id="lobby-codigo" type="text" maxlength="6"
+          placeholder="••••••" autocomplete="off"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')validarCodigo()">
+      </div>
+      <div class="lobby-error" id="lobby-erro-cod"></div>
+      <button class="lobby-btn" id="lobby-btn-cod" onclick="validarCodigo()">Verificar código →</button>
+    </div>
+
+    <!-- Etapa 2: Nome -->
+    <div class="lobby-step hidden" id="step-nome">
+      <div>
+        <label class="lobby-label">Seu nome</label>
+        <input class="lobby-name-input" id="lobby-nome" type="text" maxlength="40"
+          placeholder="Como você quer ser identificado"
+          onkeydown="if(event.key==='Enter')entrarNaAula()">
+      </div>
+      <div class="lobby-error" id="lobby-erro-nome"></div>
+      <button class="lobby-btn" id="lobby-btn-nome" onclick="entrarNaAula()">Entrar na aula →</button>
+      <button class="lobby-back" onclick="voltarParaCodigo()">← Trocar código</button>
+    </div>
   </div>
 </div>
 
@@ -516,23 +602,26 @@ function wsSend(data) {
 }
 
 function handleStateUpdate(msg) {
-  const liberado = msg.blocoLiberado ?? 0;
+  const liberado = msg.blocoLiberado ?? -1;
   const anterior = blocoAtualRender;
 
-  const ag = document.getElementById('aguardando');
-  if (ag) ag.style.display = liberado >= 0 ? 'none' : 'block';
+  // Controla status de aguardando no hero
+  const statusEl = document.getElementById('hero-status');
+  if (statusEl) statusEl.style.display = liberado >= 0 ? 'none' : 'flex';
 
-  // Renderizar blocos liberados (do 1 até liberado+1)
-  for (let i = 1; i <= liberado + 1 && i <= 7; i++) {
-    if (!document.getElementById(`b${i}`)) {
-      document.getElementById('blocos').insertAdjacentHTML('beforeend', renderBloco(i));
+  // Renderizar blocos liberados (só quando liberado >= 0)
+  if (liberado >= 0) {
+    for (let i = 1; i <= liberado + 1 && i <= 7; i++) {
+      if (!document.getElementById(`b${i}`)) {
+        document.getElementById('blocos').insertAdjacentHTML('beforeend', renderBloco(i));
+      }
     }
   }
 
-  const pct = Math.round(((liberado + 1) / 7) * 100);
+  const pct = liberado < 0 ? 0 : Math.round(((liberado + 1) / 7) * 100);
   document.getElementById('prog').style.width = pct + '%';
   document.getElementById('pct-label').textContent = pct + '%';
-  document.getElementById('bloco-label').textContent = `Bloco ${liberado + 1} de 7`;
+  document.getElementById('bloco-label').textContent = liberado < 0 ? 'Aguardando início' : `Bloco ${liberado + 1} de 7`;
 
   // Detecta avanço: professor liberou um bloco novo (não conta o primeiro carregamento)
   if (anterior >= 0 && liberado > anterior) {
@@ -613,7 +702,6 @@ function renderBloco(num) {
     <div class="bloco entrando" id="b${num}" data-num="${num}">
       <div class="bloco-visual">${svgStr}</div>
       <div class="bloco-conteudo">
-        <div class="bloco-eye">${c.eye}</div>
         <h2>${c.titulo}</h2>
         ${c.corpo}
       </div>
@@ -637,14 +725,53 @@ function toggleCheck(el) {
   el.querySelector('.check-box').classList.toggle('done');
 }
 
-// ── Entrada ────────────────────────────────────────────────
-function entrar() {
-  const nome = document.getElementById('nome-input').value.trim();
-  if (!nome) return alert('Por favor, informe seu nome.');
+// ── Lobby ──────────────────────────────────────────────────
+async function validarCodigo() {
+  const code = document.getElementById('lobby-codigo').value.trim().toUpperCase();
+  const erroEl = document.getElementById('lobby-erro-cod');
+  const btn = document.getElementById('lobby-btn-cod');
+  erroEl.classList.remove('show');
+  if (code.length < 4) { erroEl.textContent = 'Digite o código da sala.'; erroEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  try {
+    const res = await fetch(`/api/join?code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (data.valid) {
+      document.getElementById('step-codigo').classList.add('hidden');
+      document.getElementById('step-nome').classList.remove('hidden');
+      setTimeout(() => document.getElementById('lobby-nome').focus(), 50);
+    } else {
+      erroEl.textContent = 'Código inválido. Confirme com o professor.';
+      erroEl.classList.add('show');
+    }
+  } catch(e) {
+    erroEl.textContent = 'Erro de conexão. Tente novamente.';
+    erroEl.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = 'Verificar código →';
+}
+
+function voltarParaCodigo() {
+  document.getElementById('step-nome').classList.add('hidden');
+  document.getElementById('step-codigo').classList.remove('hidden');
+  document.getElementById('lobby-erro-cod').classList.remove('show');
+  setTimeout(() => document.getElementById('lobby-codigo').focus(), 50);
+}
+
+function entrarNaAula() {
+  const nome = document.getElementById('lobby-nome').value.trim();
+  const erroEl = document.getElementById('lobby-erro-nome');
+  erroEl.classList.remove('show');
+  if (!nome) { erroEl.textContent = 'Digite seu nome.'; erroEl.classList.add('show'); return; }
   nomeAluno = nome;
-  document.getElementById('nome-modal').style.display = 'none';
+  // Fechar lobby com fade
+  const lobby = document.getElementById('lobby');
+  lobby.classList.add('saindo');
+  setTimeout(() => { lobby.style.display = 'none'; }, 500);
   wsSend({ type: 'aluno_connect', nome });
 }
+
+function entrar() { entrarNaAula(); } // compat
 
 // ── Bolhas ─────────────────────────────────────────────────
 // Paleta de cores para nomes (rotativa)
@@ -715,6 +842,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharBolhasOverlay();
 });
 
+document.getElementById('lobby-codigo').focus();
 conectarWS();
 </script>
 </body>

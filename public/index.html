@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar na Aula</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,600;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d1117;color:#e6edf3;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+
+.card{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:48px 40px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:28px;}
+
+.brand{text-align:center;}
+.brand-badge{display:inline-block;background:#58a6ff;color:#0d1117;font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 10px;border-radius:4px;font-family:'DM Sans',monospace;margin-bottom:12px;}
+.brand h1{font-family:'Fraunces',serif;font-size:26px;font-weight:500;line-height:1.2;color:#e6edf3;}
+.brand p{font-size:13px;color:#7d8590;margin-top:6px;}
+
+.form{display:flex;flex-direction:column;gap:16px;}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;font-weight:600;letter-spacing:.08em;color:#7d8590;text-transform:uppercase;}
+
+.code-input{background:#0d1117;border:1.5px solid #30363d;border-radius:8px;padding:14px 16px;font-size:28px;font-weight:600;color:#e6edf3;font-family:'DM Sans',monospace;letter-spacing:.25em;text-align:center;text-transform:uppercase;width:100%;transition:border-color .2s;outline:none;}
+.code-input:focus{border-color:#58a6ff;}
+.code-input::placeholder{color:#30363d;letter-spacing:.1em;font-size:22px;}
+
+.name-input{background:#0d1117;border:1.5px solid #30363d;border-radius:8px;padding:12px 16px;font-size:15px;color:#e6edf3;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s;outline:none;}
+.name-input:focus{border-color:#58a6ff;}
+.name-input::placeholder{color:#3d444d;}
+
+.btn-enter{background:#58a6ff;color:#0d1117;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;width:100%;}
+.btn-enter:hover{opacity:.88;}
+.btn-enter:disabled{opacity:.4;cursor:not-allowed;}
+
+.error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f85149;display:none;text-align:center;}
+.error.show{display:block;}
+
+.footer{text-align:center;font-size:11px;color:#3d444d;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">
+    <span class="brand-badge">ZATTO ESCOLA</span>
+    <h1>Entrar na Aula</h1>
+    <p>Digite o código fornecido pelo professor e seu nome</p>
+  </div>
+
+  <div class="form">
+    <div class="field">
+      <label>Código da sala</label>
+      <input class="code-input" id="codigo" type="text" maxlength="6"
+        placeholder="••••••" autocomplete="off" autocapitalize="characters"
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter')document.getElementById('nome').focus()">
+    </div>
+
+    <div class="field">
+      <label>Seu nome</label>
+      <input class="name-input" id="nome" type="text" maxlength="40"
+        placeholder="Como você quer ser identificado"
+        onkeydown="if(event.key==='Enter')entrar()">
+    </div>
+
+    <div class="error" id="erro"></div>
+
+    <button class="btn-enter" id="btn-enter" onclick="entrar()">Entrar na aula →</button>
+  </div>
+
+  <div class="footer">Sistema Zatto · Plataforma de Aulas ao Vivo</div>
+</div>
+
+<script>
+async function entrar() {
+  const code = document.getElementById('codigo').value.trim().toUpperCase();
+  const nome = document.getElementById('nome').value.trim();
+  const erro = document.getElementById('erro');
+  const btn  = document.getElementById('btn-enter');
+
+  erro.classList.remove('show');
+
+  if (code.length < 4) { showErro('Digite o código da sala.'); document.getElementById('codigo').focus(); return; }
+  if (!nome)           { showErro('Digite seu nome.'); document.getElementById('nome').focus(); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res  = await fetch(`/api/join?code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (data.valid) {
+      window.location.href = `/aluno.html?name=${encodeURIComponent(nome)}`;
+    } else {
+      showErro('Código inválido. Confirme com o professor.');
+      btn.disabled = false;
+      btn.textContent = 'Entrar na aula →';
+    }
+  } catch(e) {
+    showErro('Erro de conexão. Tente novamente.');
+    btn.disabled = false;
+    btn.textContent = 'Entrar na aula →';
+  }
+}
+
+function showErro(msg) {
+  const el = document.getElementById('erro');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+const urlCode = new URLSearchParams(location.search).get('code');
+if (urlCode) {
+  document.getElementById('codigo').value = urlCode.toUpperCase();
+  document.getElementById('nome').focus();
+} else {
+  document.getElementById('codigo').focus();
+}
+</script>
+</body>
+</html>
