@@ -1,3 +1,6 @@
 node_modules/
 .env
 *.log
+db/plataforma.db
+db/plataforma.db-wal
+db/plataforma.db-shm
