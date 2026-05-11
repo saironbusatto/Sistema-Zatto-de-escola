@@ -1,18 +1,85 @@
-const express = require('express');
+require('dotenv').config();
+const express  = require('express');
+const session  = require('express-session');
+const bcrypt   = require('bcrypt');
 const { WebSocketServer } = require('ws');
-const http = require('http');
-const path = require('path');
+const http     = require('http');
+const path     = require('path');
+const { getDb }        = require('./db/database.js');
+const adminRouter      = require('./routes/admin.js');
+const { requireAdminPage } = require('./middleware/adminAuth.js');
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss    = new WebSocketServer({ server });
 
+// ── Garante que SESSION_SECRET existe ────────────────────────
+if (!process.env.SESSION_SECRET) {
+  console.error('[erro] SESSION_SECRET não definido no .env');
+  process.exit(1);
+}
+
+// ── Cria primeiro admin e só então inicia o servidor ─────────
+// (garante que login funciona desde a primeira requisição)
+async function iniciar() {
+  const db = getDb();
+  const existe = db.prepare('SELECT id FROM admin_users LIMIT 1').get();
+  if (!existe) {
+    const user = process.env.ADMIN_USER || 'admin';
+    const pass = process.env.ADMIN_PASSWORD;
+    if (!pass) {
+      console.warn('[admin] ADMIN_PASSWORD não definido — nenhum usuário admin criado');
+    } else {
+      const hash = await bcrypt.hash(pass, 12);
+      db.prepare('INSERT INTO admin_users (username, password_hash, nome) VALUES (?,?,?)')
+        .run(user, hash, 'Administrador');
+      console.log(`[admin] Usuário "${user}" criado`);
+    }
+  }
+
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`Plataforma rodando em http://localhost:${PORT}`);
+    console.log(`  Professor: http://localhost:${PORT}/professor.html`);
+    console.log(`  Aluno:     http://localhost:${PORT}/aluno.html`);
+    console.log(`  Admin:     http://localhost:${PORT}/admin`);
+  });
+}
+
+server.on('error', err => { console.error('[server error]', err.message); process.exit(1); });
+iniciar().catch(err => { console.error('[fatal]', err); process.exit(1); });
+
+// ── Middlewares globais ──────────────────────────────────────
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'no-referrer');
   next();
 });
+
+app.use(express.json({ limit: '64kb' }));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 8 * 60 * 60 * 1000, // 8 horas
+  },
+}));
+
+// ── API admin (rotas públicas: login/logout) ─────────────────
+app.use('/api/admin', adminRouter);
+
+// ── Protege acesso direto a /admin/*.html (exceto index.html) ─
+app.use('/admin', (req, res, next) => {
+  if (req.path === '/' || req.path === '/index.html') return next();
+  requireAdminPage(req, res, next);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Código da sala ───────────────────────────────────────────
@@ -277,9 +344,3 @@ wss.on('connection', (ws) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Plataforma rodando em http://localhost:${PORT}`);
-  console.log(`  Professor: http://localhost:${PORT}/professor.html`);
-  console.log(`  Aluno:     http://localhost:${PORT}/aluno.html`);
-});
