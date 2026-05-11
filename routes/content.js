@@ -17,12 +17,16 @@ router.get('/:slug', (req, res) => {
     'SELECT * FROM blocos WHERE modulo_id = ? AND publicado = 1 ORDER BY ordem, id'
   ).all(mod.id);
 
+  const modoProfessor = req.query.mode === 'professor';
+
   for (const bloco of blocos) {
     bloco.quizzes    = db.prepare('SELECT * FROM quizzes    WHERE bloco_id = ? ORDER BY ordem, id').all(bloco.id);
     bloco.exercicios = db.prepare('SELECT * FROM exercicios WHERE bloco_id = ? ORDER BY ordem, id').all(bloco.id);
-    // Não expõe roteiro_fala/roteiro_notas para alunos
-    delete bloco.roteiro_fala;
-    delete bloco.roteiro_notas;
+    if (!modoProfessor) {
+      // Roteiro é exclusivo do professor — não expor aos alunos
+      delete bloco.roteiro_fala;
+      delete bloco.roteiro_notas;
+    }
   }
 
   res.json({ ...mod, blocos });

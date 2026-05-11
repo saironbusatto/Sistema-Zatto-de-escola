@@ -412,7 +412,12 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 <script src="/shared.js"></script>
 <script>
-const SVGs = {
+// Populados via API em carregarConteudo() — fallback hardcoded abaixo
+let SVGs = {};
+let TITULOS_ALUNO = {};
+let BLOCOS = [];
+
+const _SVGs_FALLBACK = {
   1: `<svg width="100%" viewBox="0 0 640 300" role="img">
     <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
     <circle cx="120" cy="100" r="26" fill="none" stroke="#2d5fa3" stroke-width="1.5"/>
@@ -566,7 +571,7 @@ const SVGs = {
   </svg>`
 };
 
-const TITULOS_ALUNO = {
+const _TITULOS_ALUNO_FALLBACK = {
   1:"Ter acesso à IA não é o mesmo que ser fluente nela",
   2:"A IA está mudando como trabalhamos — mas exige uma nova habilidade",
   3:"Existem 3 formas de trabalhar com IA — a maioria usa só uma",
@@ -576,7 +581,7 @@ const TITULOS_ALUNO = {
   7:"Exercício prático — meu primeiro mapeamento 4D"
 };
 
-const BLOCOS = [
+const _BLOCOS_FALLBACK = [
   {id:1,titulo:"Abertura e gancho",tempo:"0–10 min",
     fala:'"Quem aqui já ficou frustrado com o ChatGPT ou Claude? Levanta a mão." — Espere o silêncio. "Esse sentimento não é culpa de vocês. É porque a maioria interage com IA como se fosse um Google melhorado. Não é. Hoje vamos mudar isso."',
     notas:[{tipo:"g",icon:"💡",texto:"<strong>Gancho:</strong> Pergunte 'O que sua tela tem em comum com a IA?' Deixe 2-3 respostas vierem, depois revele a conexão pixel → matriz → GPU → Transformer."},{tipo:"w",icon:"⏱",texto:"Máximo 10 minutos. Corte se engajar demais."}]},
@@ -599,6 +604,35 @@ const BLOCOS = [
     fala:'"Exercício: pensem em uma tarefa do dia a dia. Qual modo usariam? Como aplicariam os 4Ds? 1 minuto cada."',
     notas:[{tipo:"g",icon:"💡",texto:"Recursos pós-aula: Playlist YouTube Anthropic Academy · anthropic.skilljar.com"},{tipo:"p",icon:"📋",texto:"Lembre de coletar feedback via pergunta final."}]}
 ];
+
+// ── Carrega conteúdo do módulo ativo via API ─────────────────
+async function carregarConteudo() {
+  try {
+    const session = await fetch('/api/session').then(r => r.json());
+    if (!session.moduloSlug) {
+      SVGs = _SVGs_FALLBACK;
+      TITULOS_ALUNO = _TITULOS_ALUNO_FALLBACK;
+      BLOCOS = _BLOCOS_FALLBACK;
+      return;
+    }
+    const content = await fetch(`/api/content/${session.moduloSlug}?mode=professor`).then(r => r.json());
+    if (!content.blocos?.length) throw new Error('Sem blocos');
+
+    SVGs = {};
+    TITULOS_ALUNO = {};
+    BLOCOS = content.blocos.map(b => {
+      SVGs[b.ordem] = b.svg || '';
+      TITULOS_ALUNO[b.ordem] = b.titulo;
+      let notas = [];
+      try { notas = JSON.parse(b.roteiro_notas || '[]'); } catch {}
+      return { id: b.ordem, titulo: b.titulo, tempo: b.eye || `${b.tempo_min} min`, fala: b.roteiro_fala || '', notas };
+    });
+  } catch {
+    SVGs = _SVGs_FALLBACK;
+    TITULOS_ALUNO = _TITULOS_ALUNO_FALLBACK;
+    BLOCOS = _BLOCOS_FALLBACK;
+  }
+}
 
 let blocoAtual = -1;
 let modoAtivo = null; // 'pergunta' | 'quiz' | null
@@ -1114,8 +1148,10 @@ function initAllCanvases() {
   });
 }
 
-renderBlocos();
-setTimeout(initAllCanvases, 150);
+carregarConteudo().then(() => {
+  renderBlocos();
+  setTimeout(initAllCanvases, 150);
+});
 carregarCodigo();
 conectarWS();
 </script>

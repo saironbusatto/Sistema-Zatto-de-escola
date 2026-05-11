@@ -402,8 +402,13 @@ let respostasEnviadas = new Set();
 let ws, wsReady = false;
 let avancoTimer = null;
 
-// ── SVGs dos blocos ────────────────────────────────────────
-const SVGs = {
+// ── Conteúdo carregado via API em carregarConteudo() ──────
+let SVGs = {};
+let CONTEUDOS = {};
+let TOTAL_BLOCOS = 0;
+
+// ── SVGs dos blocos (fallback hardcoded — substituído pela API) ──
+const _SVGs_FALLBACK = {
   1: `<svg width="100%" viewBox="0 0 640 300" role="img">
     <title>Abertura — humano e IA como parceiros</title>
     <desc>Ilustração mostrando a lacuna entre ter acesso à IA e ser fluente nela</desc>
@@ -588,8 +593,8 @@ const SVGs = {
   </svg>`
 };
 
-// ── Conteúdo dos blocos ────────────────────────────────────
-const CONTEUDOS = {
+// ── Conteúdo dos blocos (fallback hardcoded) ───────────────
+const _CONTEUDOS_FALLBACK = {
   1: {
     eye:"Abertura · 0–10 min",
     titulo:"Ter acesso à IA não é o mesmo que ser fluente nela",
@@ -668,6 +673,40 @@ const CONTEUDOS = {
   }
 };
 
+// ── Carrega conteúdo do módulo ativo via API ───────────────
+async function carregarConteudo() {
+  try {
+    const session = await fetch('/api/session').then(r => r.json());
+    if (!session.moduloSlug) {
+      // Nenhum módulo ativo — usa fallback hardcoded (retrocompatibilidade)
+      SVGs = _SVGs_FALLBACK;
+      CONTEUDOS = _CONTEUDOS_FALLBACK;
+      TOTAL_BLOCOS = Object.keys(_CONTEUDOS_FALLBACK).length;
+      return;
+    }
+    const content = await fetch(`/api/content/${session.moduloSlug}`).then(r => r.json());
+    if (!content.blocos) throw new Error('Módulo sem blocos');
+
+    SVGs = {};
+    CONTEUDOS = {};
+    content.blocos.forEach(b => {
+      SVGs[b.ordem]      = b.svg || '';
+      CONTEUDOS[b.ordem] = {
+        eye:         b.eye || '',
+        titulo:      b.titulo,
+        corpo:       b.corpo_html || '',
+        temPergunta: !!b.tem_pergunta,
+      };
+    });
+    TOTAL_BLOCOS = content.blocos.length;
+  } catch {
+    // Fallback silencioso para o conteúdo hardcoded
+    SVGs = _SVGs_FALLBACK;
+    CONTEUDOS = _CONTEUDOS_FALLBACK;
+    TOTAL_BLOCOS = Object.keys(_CONTEUDOS_FALLBACK).length;
+  }
+}
+
 // ── WebSocket ──────────────────────────────────────────────
 function conectarWS() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -716,14 +755,14 @@ function handleStateUpdate(msg) {
 
   // Renderizar blocos liberados (só quando liberado >= 0)
   if (liberado >= 0) {
-    for (let i = 1; i <= liberado + 1 && i <= 7; i++) {
+    for (let i = 1; i <= liberado + 1 && i <= TOTAL_BLOCOS; i++) {
       if (!document.getElementById(`b${i}`)) {
         document.getElementById('blocos').insertAdjacentHTML('beforeend', renderBloco(i));
       }
     }
   }
 
-  const pct = liberado < 0 ? 0 : Math.round(((liberado + 1) / 7) * 100);
+  const pct = liberado < 0 ? 0 : Math.round(((liberado + 1) / (TOTAL_BLOCOS || 7)) * 100);
   document.getElementById('prog').style.width = pct + '%';
   document.getElementById('pct-label').textContent = pct + '%';
   document.getElementById('bloco-label').textContent = liberado < 0 ? 'Aguardando início' : `Bloco ${liberado + 1} de 7`;
@@ -1238,7 +1277,7 @@ document.addEventListener('keydown', e => {
 });
 
 document.getElementById('lobby-codigo').focus();
-conectarWS();
+carregarConteudo().then(conectarWS);
 
 </script>
 </body>

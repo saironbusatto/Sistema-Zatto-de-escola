@@ -78,6 +78,14 @@ app.use('/api/admin', adminRouter);
 // ── API conteúdo (pública — usada pela aula ao vivo) ─────────
 app.use('/api/content', contentRouter);
 
+// ── Sessão da aula (módulo ativo + código da sala) ────────────
+app.get('/api/session', (req, res) => {
+  res.json({
+    moduloSlug: req.app.get('moduloAtivoSlug') || null,
+    code: roomCode,
+  });
+});
+
 // ── Protege acesso direto a /admin/*.html (exceto index.html) ─
 app.use('/admin', (req, res, next) => {
   if (req.path === '/' || req.path === '/index.html') return next();
