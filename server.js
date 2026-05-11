@@ -7,6 +7,7 @@ const http     = require('http');
 const path     = require('path');
 const { getDb }        = require('./db/database.js');
 const adminRouter      = require('./routes/admin.js');
+const contentRouter    = require('./routes/content.js');
 const { requireAdminPage } = require('./middleware/adminAuth.js');
 
 const app    = express();
@@ -73,6 +74,9 @@ app.use(session({
 
 // ── API admin (rotas públicas: login/logout) ─────────────────
 app.use('/api/admin', adminRouter);
+
+// ── API conteúdo (pública — usada pela aula ao vivo) ─────────
+app.use('/api/content', contentRouter);
 
 // ── Protege acesso direto a /admin/*.html (exceto index.html) ─
 app.use('/admin', (req, res, next) => {
