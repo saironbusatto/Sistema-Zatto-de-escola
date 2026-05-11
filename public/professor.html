@@ -55,21 +55,39 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .ws-err{color:var(--red);border-color:var(--red);}
 .ws-conn{color:var(--amber);border-color:var(--amber);}
 
-/* ── Activity Bar ── */
-.activity-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.activity-bar-label{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-right:4px;}
-.act-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
-.act-btn:hover{border-color:var(--muted);}
-.act-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08);}
-.act-btn.disabled{opacity:.4;cursor:not-allowed;}
-.act-btn.act-encerrar{border-color:var(--red);color:var(--red);background:rgba(248,81,73,.06);}
-.act-btn.act-encerrar:hover{background:rgba(248,81,73,.12);}
-.act-sep{width:1px;height:20px;background:var(--border);margin:0 4px;}
+/* ── Activity Bar — oculta (botões migrados para o rodapé do preview) ── */
+.activity-bar{display:none;}
 
-/* ── Activity Panel ── */
-.activity-panel{background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:max-height .3s ease;}
-.activity-panel.closed{max-height:0;}
-.activity-panel.open{max-height:600px;}
+/* ── Activity Panel — painel fixo que sobe do fundo ── */
+.activity-panel{
+  position:fixed;bottom:0;left:260px;right:0;z-index:300;
+  background:var(--bg2);border-top:2px solid var(--border);
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+  overflow:hidden;
+  transition:transform .28s cubic-bezier(.22,1,.36,1),opacity .28s;
+}
+.activity-panel.closed{transform:translateY(100%);opacity:0;pointer-events:none;}
+.activity-panel.open{transform:translateY(0);opacity:1;}
+
+/* ── Botões no painel fixo (header do painel) ── */
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg3);}
+.panel-header-title{font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.panel-header-actions{display:flex;gap:6px;}
+
+/* ── act-btn mantido para compat. JS ── */
+.act-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.act-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08);}
+.act-btn.act-encerrar{border-color:var(--red);color:var(--red);}
+.act-btn.act-encerrar:hover{background:rgba(248,81,73,.1);}
+
+/* ── Rodapé do preview — draw tools + botões ── */
+.preview-bottom-bar{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg3);border-top:1px solid var(--border);flex-shrink:0;}
+.prev-sep{width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 2px;}
+.prev-act-btn{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:3px 9px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.prev-act-btn:hover{border-color:var(--muted);color:var(--text);}
+.prev-act-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08);}
+.prev-act-btn.encerrar{border-color:var(--red);color:var(--red);}
+.prev-act-btn.encerrar:hover{background:rgba(248,81,73,.08);}
 
 /* ── Mode: Pergunta ── */
 .mode-pergunta{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
@@ -182,7 +200,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .nota-body strong{color:var(--text);}
 .preview-box{background:#f7f5f0;border-radius:8px;padding:0;display:flex;flex-direction:column;overflow:hidden;}
 .preview-box .pl{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;padding:8px 12px 4px;background:var(--bg3);flex-shrink:0;}
-.draw-toolbar{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0;}
+.draw-toolbar{display:none;}/* removido — conteúdo migrado para preview-bottom-bar */
 .color-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0;}
 .color-swatch:hover{transform:scale(1.18);}
 .color-swatch.sel{border-color:#fff;transform:scale(1.25);box-shadow:0 0 0 1px #555;}
@@ -266,8 +284,16 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     </button>
   </div>
 
-  <!-- Activity Panel -->
+  <!-- Activity Panel — painel fixo que sobe do fundo -->
   <div class="activity-panel closed" id="activity-panel">
+    <div class="panel-header">
+      <span class="panel-header-title" id="panel-header-title">Atividade</span>
+      <div class="panel-header-actions">
+        <button class="act-btn act-encerrar" id="act-encerrar" onclick="encerrarAtividade()" style="display:none">
+          ✕ Encerrar atividade
+        </button>
+      </div>
+    </div>
 
     <!-- Pergunta Aberta -->
     <div class="mode-pergunta" id="mode-pergunta" style="display:none">
@@ -710,12 +736,14 @@ function renderRespostasList() {
 }
 
 // ── Activity modes ───────────────────────────────────────────
+const MODO_LABELS = { pergunta: '💬 Pergunta Aberta', quiz: '🎮 Quiz', exercicio: '📋 Exercício' };
+const MODO_PREFIXOS = { pergunta: 'prev-perg', quiz: 'prev-quiz', exercicio: 'prev-ex' };
+
 function toggleMode(modo) {
-  if (modoAtivo === modo) {
-    encerrarAtividade();
-    return;
-  }
+  if (modoAtivo === modo) { encerrarAtividade(); return; }
   modoAtivo = modo;
+
+  // Painel fixo
   const panel = document.getElementById('activity-panel');
   panel.classList.remove('closed');
   panel.classList.add('open');
@@ -723,9 +751,11 @@ function toggleMode(modo) {
     document.getElementById(`mode-${m}`).style.display = 'none';
   });
   document.getElementById(`mode-${modo}`).style.display = modo === 'quiz' ? 'block' : 'flex';
-  document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
-  document.getElementById(`act-${modo}`).classList.add('active');
+  document.getElementById('panel-header-title').textContent = MODO_LABELS[modo] || 'Atividade';
   document.getElementById('act-encerrar').style.display = 'flex';
+
+  // Marca botões ativos nos previews
+  _atualizarBotoesPreview();
 }
 
 function encerrarAtividade() {
@@ -735,9 +765,27 @@ function encerrarAtividade() {
   const panel = document.getElementById('activity-panel');
   panel.classList.remove('open');
   panel.classList.add('closed');
-  document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
   document.getElementById('act-encerrar').style.display = 'none';
+  _atualizarBotoesPreview();
   wsSend({ type: 'fechar_pergunta' });
+}
+
+function _atualizarBotoesPreview() {
+  const modos = ['perg','quiz','ex'];
+  modos.forEach(m => {
+    document.querySelectorAll(`[id^="prev-${m}-"]`).forEach(btn => {
+      btn.classList.remove('active');
+    });
+  });
+  document.querySelectorAll('[id^="prev-enc-"]').forEach(btn => {
+    btn.style.display = modoAtivo ? 'block' : 'none';
+  });
+  if (modoAtivo) {
+    const prefixo = MODO_PREFIXOS[modoAtivo];
+    if (prefixo) {
+      document.querySelectorAll(`[id^="${prefixo}-"]`).forEach(btn => btn.classList.add('active'));
+    }
+  }
 }
 
 // ── Pergunta ─────────────────────────────────────────────────
@@ -966,15 +1014,6 @@ function renderBlocos() {
         </div>
         <div class="preview-box">
           <div class="pl">Preview — tela do aluno</div>
-          <div class="draw-toolbar">
-            <div id="swatches-${b.id}" style="display:flex;gap:5px;align-items:center;">
-              <div class="color-swatch sel" style="background:#1c1a16;" onclick="setDrawColor(${b.id},'#1c1a16',this)" title="Preto"></div>
-              <div class="color-swatch" style="background:#e03131;" onclick="setDrawColor(${b.id},'#e03131',this)" title="Vermelho"></div>
-              <div class="color-swatch" style="background:#2f9e44;" onclick="setDrawColor(${b.id},'#2f9e44',this)" title="Verde"></div>
-              <div class="color-swatch" style="background:#1971c2;" onclick="setDrawColor(${b.id},'#1971c2',this)" title="Azul"></div>
-            </div>
-            <button class="draw-clear" onclick="clearCanvas(${b.id})">✕ Limpar</button>
-          </div>
           <div class="preview-content-area">
             <div class="preview-svg-wrap">
               <div class="prev-eye">${b.tempo}</div>
@@ -982,6 +1021,22 @@ function renderBlocos() {
               ${SVGs[b.id]||''}
             </div>
             <canvas id="canvas-${b.id}" class="draw-canvas"></canvas>
+          </div>
+          <!-- Rodapé do preview: draw tools + botões de atividade -->
+          <div class="preview-bottom-bar">
+            <div id="swatches-${b.id}" style="display:flex;gap:4px;align-items:center;">
+              <div class="color-swatch sel" style="background:#1c1a16;" onclick="setDrawColor(${b.id},'#1c1a16',this)" title="Preto"></div>
+              <div class="color-swatch" style="background:#e03131;" onclick="setDrawColor(${b.id},'#e03131',this)" title="Vermelho"></div>
+              <div class="color-swatch" style="background:#2f9e44;" onclick="setDrawColor(${b.id},'#2f9e44',this)" title="Verde"></div>
+              <div class="color-swatch" style="background:#1971c2;" onclick="setDrawColor(${b.id},'#1971c2',this)" title="Azul"></div>
+              <button class="draw-clear" onclick="clearCanvas(${b.id})">✕</button>
+            </div>
+            <div class="prev-sep"></div>
+            <button class="prev-act-btn" onclick="toggleMode('pergunta')" id="prev-perg-${b.id}">💬 Pergunta</button>
+            <button class="prev-act-btn" onclick="toggleMode('quiz')"    id="prev-quiz-${b.id}">🎮 Quiz</button>
+            <button class="prev-act-btn" onclick="toggleMode('exercicio')" id="prev-ex-${b.id}">📋 Exercício</button>
+            <div class="prev-sep"></div>
+            <button class="prev-act-btn encerrar" onclick="encerrarAtividade()" id="prev-enc-${b.id}" style="display:none">✕ Encerrar</button>
           </div>
           <button class="liberar-btn" onclick="liberarBloco(${i})" ${liberado?'disabled':''} style="border-radius:0 0 8px 8px;margin:0;flex-shrink:0;">
             ${liberado ? '✓ Liberado para alunos' : '▶ Liberar este bloco'}
