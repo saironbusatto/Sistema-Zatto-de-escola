@@ -123,6 +123,45 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 .btn-iniciar-quiz{background:var(--green);color:#0d1117;border:none;border-radius:6px;padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;}
 .btn-iniciar-quiz:hover{opacity:.85;}
 
+/* ── Quiz running / resultado ── */
+.quiz-run-wrap{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.quiz-run-pergunta{font-size:12px;color:var(--muted);font-style:italic;padding:8px 12px;background:var(--bg3);border-radius:6px;border-left:3px solid var(--accent);}
+.quiz-run-counter{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;color:var(--text);}
+.quiz-run-counter span{font-size:13px;color:var(--muted);font-weight:400;}
+.quiz-run-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.quiz-run-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.quiz-run-actions{display:flex;gap:8px;}
+.btn-revelar{background:var(--purple);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;}
+.btn-revelar:hover{opacity:.85;}
+.btn-encerrar-quiz{background:transparent;border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;}
+.btn-encerrar-quiz:hover{border-color:var(--red);color:var(--red);}
+.quiz-dist-wrap{display:flex;flex-direction:column;gap:6px;}
+.quiz-dist-row{display:grid;grid-template-columns:22px 1fr 60px;align-items:center;gap:8px;}
+.quiz-dist-letra{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;font-family:'IBM Plex Mono',monospace;}
+.quiz-dist-bar-bg{height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.quiz-dist-bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.22,1,.36,1);}
+.quiz-dist-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-align:right;}
+.quiz-dist-row.correta .quiz-dist-bar-fill{outline:2px solid var(--green);outline-offset:1px;}
+.quiz-dist-correta-tag{font-size:10px;color:var(--green);font-family:'IBM Plex Mono',monospace;}
+.quiz-ranking-box{background:var(--bg3);border-radius:8px;padding:10px 14px;}
+.quiz-ranking-titulo{font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
+.quiz-ranking-item{font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);}
+.quiz-ranking-item:last-child{border:none;}
+
+/* ── Exercise mode ── */
+.mode-exercicio{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.ex-tipo-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.ex-tipo-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s;}
+.ex-tipo-btn:hover{border-color:var(--muted);}
+.ex-tipo-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08);}
+.ex-tipo-desc{font-size:11px;color:var(--muted);line-height:1.55;padding:8px 12px;background:var(--bg3);border-radius:6px;border-left:3px solid var(--accent);display:none;}
+.btn-iniciar-ex{background:var(--accent);color:#0d1117;border:none;border-radius:6px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;align-self:flex-start;}
+.btn-iniciar-ex:hover{opacity:.85;}
+.btn-iniciar-ex:disabled{opacity:.35;cursor:default;}
+.ex-respostas-list{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.ex-resp-row{padding:6px 12px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--text);}
+.ex-resp-nome{font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-right:8px;}
+
 /* ── Content (blocks) ── */
 .content{flex:1;overflow-y:auto;padding:20px;}
 .bloco-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;min-height:100%;display:flex;flex-direction:column;}
@@ -218,7 +257,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
     <button class="act-btn" id="act-quiz" onclick="toggleMode('quiz')">
       🎮 Quiz
     </button>
-    <button class="act-btn disabled" title="Em breve">
+    <button class="act-btn" id="act-exercicio" onclick="toggleMode('exercicio')">
       📋 Exercício
     </button>
     <div class="act-sep"></div>
@@ -265,7 +304,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
     <!-- Quiz Creator -->
     <div class="mode-quiz" id="mode-quiz" style="display:none">
-      <div class="quiz-form">
+
+      <!-- Estado 1: Formulário de criação -->
+      <div id="quiz-state-form" class="quiz-form">
         <input type="text" class="quiz-pergunta-input" id="quiz-pergunta"
           placeholder="Qual a pergunta para a turma?">
 
@@ -308,6 +349,58 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
           <button class="btn-iniciar-quiz" onclick="iniciarQuiz()">▶ Iniciar Quiz</button>
         </div>
       </div>
+
+      <!-- Estado 2: Quiz em andamento -->
+      <div id="quiz-state-running" class="quiz-run-wrap" style="display:none">
+        <div class="quiz-run-pergunta" id="quiz-run-pergunta-txt"></div>
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <div class="quiz-run-counter"><span id="quiz-run-count">0</span> <span>/ <span id="quiz-run-total">0</span> responderam</span></div>
+        </div>
+        <div class="quiz-run-bar"><div class="quiz-run-bar-fill" id="quiz-run-bar-fill" style="width:0%"></div></div>
+        <div class="quiz-run-actions">
+          <button class="btn-revelar" onclick="wsSend({type:'revelar_resultado_quiz'})">📊 Revelar resultado</button>
+          <button class="btn-encerrar-quiz" onclick="encerrarQuizAtivo()">✕ Encerrar</button>
+        </div>
+      </div>
+
+      <!-- Estado 3: Resultado -->
+      <div id="quiz-state-resultado" class="quiz-run-wrap" style="display:none">
+        <div class="quiz-dist-wrap" id="quiz-dist-chart"></div>
+        <div class="quiz-ranking-box" id="quiz-ranking-box" style="display:none"></div>
+        <div class="quiz-run-actions" style="margin-top:4px;">
+          <button class="btn-encerrar-quiz" onclick="encerrarQuizAtivo()">✕ Fechar quiz</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Exercise Mode -->
+    <div class="mode-exercicio" id="mode-exercicio" style="display:none">
+
+      <!-- Estado 1: Seleção -->
+      <div id="ex-state-form">
+        <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Tipo de exercício</div>
+        <div class="ex-tipo-btns">
+          <button class="ex-tipo-btn" id="ex-btn-cenario"   onclick="selecionarTipoEx('cenario_4d')">📋 Cenário 4D</button>
+          <button class="ex-tipo-btn" id="ex-btn-chat_livre" onclick="selecionarTipoEx('chat_livre')">💬 Chat Claude</button>
+          <button class="ex-tipo-btn" id="ex-btn-reflexao"  onclick="selecionarTipoEx('reflexao')">🪞 Reflexão</button>
+        </div>
+        <div class="ex-tipo-desc" id="ex-tipo-desc"></div>
+        <button class="btn-iniciar-ex" id="btn-iniciar-ex" onclick="iniciarExercicio()" disabled>▶ Iniciar Exercício</button>
+      </div>
+
+      <!-- Estado 2: Em andamento -->
+      <div id="ex-state-running" style="display:none;flex-direction:column;gap:10px;">
+        <div class="quiz-run-pergunta" id="ex-run-nome-txt"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="quiz-run-counter"><span id="ex-run-count">0</span> <span>respostas recebidas</span></div>
+          <button class="btn-encerrar-quiz" onclick="encerrarExercicioAtivo()">✕ Encerrar</button>
+        </div>
+        <div class="ex-respostas-list" id="ex-respostas-list">
+          <div style="font-size:11px;color:var(--muted);padding:6px;">Aguardando respostas dos alunos...</div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -317,6 +410,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-ser
 
 </div>
 
+<script src="/shared.js"></script>
 <script>
 const SVGs = {
   1: `<svg width="100%" viewBox="0 0 640 300" role="img">
@@ -512,6 +606,8 @@ let respostasLocais = [];
 let bolhasAtivas = false;
 let timerSec = 0, timerRunning = false, timerInterval;
 let ws, wsReady = false;
+let alunosOnlineCount = 0;
+let quizAtivo = null; // { pergunta, opcoes, correta, tempo }
 
 // ── WebSocket ────────────────────────────────────────────────
 function conectarWS() {
@@ -529,6 +625,9 @@ function conectarWS() {
     if (msg.type === 'state_update') handleStateUpdate(msg);
     if (msg.type === 'nova_resposta') handleNovaResposta(msg);
     if (msg.type === 'novo_codigo') document.getElementById('room-code').textContent = msg.code;
+    if (msg.type === 'quiz_resposta_parcial') handleQuizRespostaParcial(msg);
+    if (msg.type === 'quiz_resultado') handleQuizResultado(msg);
+    if (msg.type === 'exercicio_resposta') handleExercicioResposta(msg);
   };
 }
 function setWsStatus(s, t) {
@@ -542,6 +641,7 @@ function wsSend(data) { if (wsReady) ws.send(JSON.stringify(data)); }
 function handleStateUpdate(msg) {
   blocoAtual = msg.blocoLiberado ?? -1;
   const count = msg.alunosOnline ?? 0;
+  alunosOnlineCount = count;
   document.getElementById('alunos-online').textContent =
     `${count} aluno${count !== 1 ? 's' : ''} conectado${count !== 1 ? 's' : ''}`;
   // Restaura respostas se houver pergunta ativa
@@ -582,29 +682,27 @@ function toggleMode(modo) {
     return;
   }
   modoAtivo = modo;
-  // Show panel
   const panel = document.getElementById('activity-panel');
   panel.classList.remove('closed');
   panel.classList.add('open');
-  // Hide all mode divs
-  document.getElementById('mode-pergunta').style.display = 'none';
-  document.getElementById('mode-quiz').style.display = 'none';
-  // Show selected
+  ['pergunta','quiz','exercicio'].forEach(m => {
+    document.getElementById(`mode-${m}`).style.display = 'none';
+  });
   document.getElementById(`mode-${modo}`).style.display = modo === 'quiz' ? 'block' : 'flex';
-  // Update button states
   document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
   document.getElementById(`act-${modo}`).classList.add('active');
   document.getElementById('act-encerrar').style.display = 'flex';
 }
 
 function encerrarAtividade() {
+  if (quizAtivo) encerrarQuizAtivo();
+  if (exercicioTipoSel && document.getElementById('ex-state-running').style.display !== 'none') encerrarExercicioAtivo();
   modoAtivo = null;
   const panel = document.getElementById('activity-panel');
   panel.classList.remove('open');
   panel.classList.add('closed');
   document.querySelectorAll('.act-btn[id^="act-"]').forEach(b => b.classList.remove('active'));
   document.getElementById('act-encerrar').style.display = 'none';
-  // Fechar pergunta no servidor
   wsSend({ type: 'fechar_pergunta' });
 }
 
@@ -641,13 +739,149 @@ function fecharBolhas() {
 // ── Quiz ─────────────────────────────────────────────────────
 function iniciarQuiz() {
   const pergunta = document.getElementById('quiz-pergunta').value.trim();
-  if (!pergunta) { alert('Digite a pergunta.'); return; }
+  if (!pergunta) { document.getElementById('quiz-pergunta').focus(); return; }
   const opcoes = ['a','b','c','d'].map(l => document.getElementById(`quiz-op-${l}`).value.trim());
   if (opcoes.some(o => !o)) { alert('Preencha todas as 4 opções.'); return; }
   const corretaEl = document.querySelector('input[name="quiz-correta"]:checked');
-  if (!corretaEl) { alert('Marque a resposta correta.'); return; }
-  // Sprint 2: implementar lógica de quiz
-  alert('Quiz em desenvolvimento — Sprint 2! 🚧\n\nPergunta criada:\n"' + pergunta + '"\n\nOpções: ' + opcoes.join(' / '));
+  if (!corretaEl) { alert('Marque a opção correta (círculo à direita de cada opção).'); return; }
+  const correta = Number(corretaEl.value);
+  const tempo = Number(document.getElementById('quiz-tempo').value);
+
+  quizAtivo = { pergunta, opcoes, correta, tempo };
+
+  wsSend({ type: 'iniciar_quiz', pergunta, opcoes, correta, tempo });
+
+  // Transição para estado "em andamento"
+  document.getElementById('quiz-state-form').style.display = 'none';
+  document.getElementById('quiz-state-resultado').style.display = 'none';
+  const running = document.getElementById('quiz-state-running');
+  running.style.display = 'flex';
+  document.getElementById('quiz-run-pergunta-txt').textContent = `"${pergunta}"`;
+  document.getElementById('quiz-run-count').textContent = '0';
+  document.getElementById('quiz-run-total').textContent = alunosOnlineCount;
+  document.getElementById('quiz-run-bar-fill').style.width = '0%';
+}
+
+function handleQuizRespostaParcial(msg) {
+  document.getElementById('quiz-run-count').textContent = msg.total;
+  const pct = Math.min(100, Math.round((msg.total / (alunosOnlineCount || 1)) * 100));
+  document.getElementById('quiz-run-bar-fill').style.width = pct + '%';
+}
+
+function handleQuizResultado(msg) {
+  if (!quizAtivo) return;
+  const { dist, correta, ranking } = msg;
+  const totalResp = dist.reduce((a, b) => a + b, 0) || 1;
+
+  const chart = document.getElementById('quiz-dist-chart');
+  chart.innerHTML = quizAtivo.opcoes.map((op, i) => {
+    const pct = Math.round((dist[i] / totalResp) * 100);
+    const isCorreta = i === correta;
+    return `
+      <div class="quiz-dist-row ${isCorreta ? 'correta' : ''}">
+        <div class="quiz-dist-letra" style="background:${QUIZ_CORES[i]}">${QUIZ_LETRAS[i]}</div>
+        <div>
+          <div style="font-size:11px;color:var(--text);margin-bottom:3px;">${esc(op)} ${isCorreta ? '<span class="quiz-dist-correta-tag">✓ CORRETA</span>' : ''}</div>
+          <div class="quiz-dist-bar-bg">
+            <div class="quiz-dist-bar-fill" style="width:${pct}%;background:${isCorreta ? 'var(--green)' : QUIZ_CORES[i]};opacity:${isCorreta?1:.65}"></div>
+          </div>
+        </div>
+        <div class="quiz-dist-pct">${dist[i]} <span style="opacity:.5">(${pct}%)</span></div>
+      </div>
+    `;
+  }).join('');
+
+  if (ranking && ranking.length) {
+    const rankBox = document.getElementById('quiz-ranking-box');
+    rankBox.style.display = 'block';
+    rankBox.innerHTML = `
+      <div class="quiz-ranking-titulo">⚡ Mais rápidos corretos</div>
+      ${ranking.map((r, i) => `<div class="quiz-ranking-item">${medalha(i)} ${esc(r.nome)}</div>`).join('')}
+    `;
+  }
+
+  document.getElementById('quiz-state-running').style.display = 'none';
+  document.getElementById('quiz-state-resultado').style.display = 'flex';
+}
+
+function encerrarQuizAtivo() {
+  wsSend({ type: 'encerrar_quiz' });
+  document.getElementById('quiz-state-running').style.display = 'none';
+  document.getElementById('quiz-state-resultado').style.display = 'none';
+  document.getElementById('quiz-state-form').style.display = 'block';
+  document.getElementById('quiz-pergunta').value = '';
+  ['a','b','c','d'].forEach(l => document.getElementById(`quiz-op-${l}`).value = '');
+  document.querySelectorAll('input[name="quiz-correta"]').forEach(r => r.checked = false);
+  quizAtivo = null; // null após DOM reset para evitar race com handleQuizResultado tardio
+}
+
+// ── Exercício ─────────────────────────────────────────────────
+const EX_DESCS = {
+  cenario_4d:  '3 cenários (Jurídico, RH, Marketing) · Alunos escolhem um e respondem os 4Ds · 5 min',
+  chat_livre:  'Alunos abrem claude.ai e registram 3 observações sobre a experiência · 10 min',
+  reflexao:    '4 perguntas de fechamento sobre os 4Ds e próximos passos · 5 min',
+};
+const EX_NOMES = { cenario_4d: 'Cenário 4D', chat_livre: 'Chat com Claude', reflexao: 'Reflexão Final' };
+const EX_BTN_IDS = { cenario_4d: 'cenario', chat_livre: 'chat_livre', reflexao: 'reflexao' };
+
+let exercicioTipoSel = null;
+let exercicioRespostaCount = 0;
+
+function selecionarTipoEx(tipo) {
+  exercicioTipoSel = tipo;
+  document.querySelectorAll('.ex-tipo-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById(`ex-btn-${EX_BTN_IDS[tipo]}`)?.classList.add('sel');
+  const desc = document.getElementById('ex-tipo-desc');
+  desc.textContent = EX_DESCS[tipo];
+  desc.style.display = 'block';
+  document.getElementById('btn-iniciar-ex').disabled = false;
+}
+
+function iniciarExercicio() {
+  if (!exercicioTipoSel) return;
+  exercicioRespostaCount = 0;
+  wsSend({ type: 'iniciar_exercicio', tipo: exercicioTipoSel });
+  document.getElementById('ex-state-form').style.display = 'none';
+  const running = document.getElementById('ex-state-running');
+  running.style.display = 'flex';
+  document.getElementById('ex-run-nome-txt').textContent = `"${EX_NOMES[exercicioTipoSel]}"`;
+  document.getElementById('ex-run-count').textContent = '0';
+  document.getElementById('ex-respostas-list').innerHTML =
+    '<div style="font-size:11px;color:var(--muted);padding:6px;">Aguardando respostas dos alunos...</div>';
+}
+
+function handleExercicioResposta(msg) {
+  exercicioRespostaCount++;
+  document.getElementById('ex-run-count').textContent = exercicioRespostaCount;
+  const list = document.getElementById('ex-respostas-list');
+  if (exercicioRespostaCount === 1) list.innerHTML = '';
+
+  const CEN = { juridico: '⚖️ Jurídico', rh: '👥 RH', marketing: '📣 Marketing' };
+  let resumo = '';
+  if (msg.tipo === 'cenario_4d') {
+    resumo = CEN[msg.dados?.cenario] || 'cenário escolhido';
+  } else if (msg.tipo === 'chat_livre') {
+    const n = (msg.dados?.observacoes || []).filter(Boolean).length;
+    resumo = `${n} observaç${n !== 1 ? 'ões' : 'ão'}`;
+  } else if (msg.tipo === 'reflexao') {
+    const n = (msg.dados?.respostas || []).filter(Boolean).length;
+    resumo = `${n} reflexão${n !== 1 ? 'ões' : ''}`;
+  }
+
+  list.insertAdjacentHTML('beforeend',
+    `<div class="ex-resp-row"><span class="ex-resp-nome">${esc(msg.nome)}</span>${resumo}</div>`);
+  list.scrollTop = list.scrollHeight;
+}
+
+function encerrarExercicioAtivo() {
+  wsSend({ type: 'encerrar_exercicio' });
+  document.getElementById('ex-state-running').style.display = 'none';
+  document.getElementById('ex-state-form').style.display = 'block';
+  document.querySelectorAll('.ex-tipo-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('ex-tipo-desc').style.display = 'none';
+  document.getElementById('btn-iniciar-ex').disabled = true;
+  exercicioTipoSel = null;
+  exercicioRespostaCount = 0;
 }
 
 // ── Blocks ───────────────────────────────────────────────────
@@ -766,10 +1000,6 @@ function toggleTimer() {
     }, 1000);
     timerRunning = true;
   }
-}
-
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Código da sala ────────────────────────────────────────────

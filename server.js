@@ -7,6 +7,12 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Código da sala ───────────────────────────────────────────
@@ -29,6 +35,8 @@ let aulaState = {
   blocoLiberado: -1,
   perguntaAtiva: null,
   respostas: [],
+  quiz: null,      // { pergunta, opcoes, correta, tempo, respostas: Map<ws, {opcao,tempo_ms,nome}> }
+  exercicio: null, // { tipo, respostas: [{nome, dados, ts}] }
 };
 
 // Clientes separados por tipo
@@ -74,7 +82,13 @@ function broadcastState() {
 }
 
 wss.on('connection', (ws) => {
+  // Rate limiting: máx 20 mensagens por segundo por cliente
+  ws._msgCount = 0;
+  ws._msgReset = setInterval(() => { ws._msgCount = 0; }, 1000);
+
   ws.on('message', (raw) => {
+    if (++ws._msgCount > 20) return; // silently drop
+    if (raw.length > 8192) return;   // rejeita payloads > 8KB
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
 
@@ -104,7 +118,7 @@ wss.on('connection', (ws) => {
 
       case 'enviar_pergunta': {
         if (!professores.has(ws)) break;
-        const texto = (msg.texto || '').trim();
+        const texto = (msg.texto || '').trim().slice(0, 300);
         if (!texto) break;
         aulaState.perguntaAtiva = { blocoId: msg.blocoId, texto, ts: Date.now() };
         aulaState.respostas = [];
@@ -122,7 +136,7 @@ wss.on('connection', (ws) => {
 
       case 'resposta_pergunta': {
         const nomeAluno = alunos.get(ws) || 'Aluno';
-        const textoResp = (msg.texto || '').trim();
+        const textoResp = (msg.texto || '').trim().slice(0, 500);
         if (!textoResp) break;
         const resp = { nome: nomeAluno, texto: textoResp, ts: Date.now() };
         aulaState.respostas.push(resp);
@@ -167,11 +181,95 @@ wss.on('connection', (ws) => {
         ws.send(JSON.stringify({ type: 'novo_codigo', code: roomCode }));
         break;
       }
+
+      case 'iniciar_quiz': {
+        if (!professores.has(ws)) break;
+        const pergunta = (msg.pergunta || '').trim().slice(0, 300);
+        const opcoes = Array.isArray(msg.opcoes) ? msg.opcoes.slice(0,4).map(o => String(o).trim().slice(0, 120)) : [];
+        const correta = Number(msg.correta);
+        const tempo = Math.min(Math.max(Number(msg.tempo) || 20, 5), 120);
+        if (!pergunta || opcoes.length !== 4 || isNaN(correta)) break;
+        aulaState.quiz = { pergunta, opcoes, correta, tempo, respostas: new Map() };
+        broadcast({ type: 'quiz_iniciado', pergunta, opcoes, tempo });
+        break;
+      }
+
+      case 'resposta_quiz': {
+        if (!aulaState.quiz || aulaState.quiz.respostas.has(ws)) break;
+        const nomeAluno = alunos.get(ws) || 'Aluno';
+        const opcao = Number(msg.opcao);
+        const tempo_ms = Number(msg.tempo_ms) || 0;
+        if (opcao < 0 || opcao > 3 || isNaN(opcao)) break;
+        aulaState.quiz.respostas.set(ws, { opcao, tempo_ms, nome: nomeAluno });
+        const totalRespostas = aulaState.quiz.respostas.size;
+        for (const prof of professores) {
+          if (prof.readyState === 1)
+            prof.send(JSON.stringify({ type: 'quiz_resposta_parcial', total: totalRespostas }));
+        }
+        ws.send(JSON.stringify({ type: 'quiz_resposta_confirmada', opcao }));
+        break;
+      }
+
+      case 'revelar_resultado_quiz': {
+        if (!professores.has(ws) || !aulaState.quiz) break;
+        const { correta, respostas } = aulaState.quiz;
+        const dist = [0, 0, 0, 0];
+        const ranking = [];
+        for (const [, r] of respostas) {
+          dist[r.opcao]++;
+          if (r.opcao === correta) ranking.push({ nome: r.nome, tempo_ms: r.tempo_ms });
+        }
+        ranking.sort((a, b) => a.tempo_ms - b.tempo_ms);
+        broadcast({ type: 'quiz_resultado', correta, dist, total: respostas.size, ranking: ranking.slice(0, 5) });
+        break;
+      }
+
+      case 'encerrar_quiz': {
+        if (!professores.has(ws)) break;
+        aulaState.quiz = null;
+        broadcast({ type: 'quiz_encerrado' });
+        break;
+      }
+
+      case 'iniciar_exercicio': {
+        if (!professores.has(ws)) break;
+        const tiposValidos = ['cenario_4d', 'chat_livre', 'reflexao'];
+        const tipo = (msg.tipo || '').trim();
+        if (!tiposValidos.includes(tipo)) break;
+        aulaState.exercicio = { tipo, respostas: [] };
+        broadcast({ type: 'exercicio_iniciado', tipo });
+        break;
+      }
+
+      case 'resposta_exercicio': {
+        if (!aulaState.exercicio) break;
+        const nomeAluno = alunos.get(ws) || 'Aluno';
+        // Serializa e limita payload a 4KB
+        let dados = {};
+        try { dados = JSON.parse(JSON.stringify(msg.dados || {}).slice(0, 4096)); } catch {}
+        const resp = { nome: nomeAluno, dados, ts: Date.now() };
+        aulaState.exercicio.respostas.push(resp);
+        for (const prof of professores) {
+          if (prof.readyState === 1)
+            prof.send(JSON.stringify({ type: 'exercicio_resposta', nome: nomeAluno, tipo: aulaState.exercicio.tipo, dados }));
+        }
+        ws.send(JSON.stringify({ type: 'exercicio_confirmado' }));
+        break;
+      }
+
+      case 'encerrar_exercicio': {
+        if (!professores.has(ws)) break;
+        aulaState.exercicio = null;
+        broadcast({ type: 'exercicio_encerrado' });
+        break;
+      }
     }
   });
 
   ws.on('close', () => {
+    clearInterval(ws._msgReset);
     professores.delete(ws);
+    aulaState.quiz?.respostas.delete(ws); // evita referência pendente de WS desconectado
     if (alunos.has(ws)) {
       alunos.delete(ws);
       broadcastState();

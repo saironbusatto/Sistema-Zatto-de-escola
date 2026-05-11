@@ -175,6 +175,64 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
   100%{transform:translateY(0px)   translateX(0px)   rotate(-1.5deg);}
 }
 
+/* ── Quiz overlay ── */
+#quiz-overlay{position:fixed;inset:0;background:#0d1117;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px;animation:quizFadeIn .25s ease;}
+@keyframes quizFadeIn{from{opacity:0;}to{opacity:1;}}
+.quiz-timer-wrap{position:absolute;top:0;left:0;right:0;height:6px;background:rgba(255,255,255,.1);}
+.quiz-timer-bar{height:100%;background:linear-gradient(90deg,#58a6ff,#a371f7);width:100%;transform-origin:left;transition:none;}
+.quiz-conn-error{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.4);border-radius:8px;padding:8px 16px;font-size:12px;color:#f85149;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:8px;white-space:nowrap;}
+.quiz-simbolo{font-size:22px;line-height:1;}
+.quiz-q-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);font-family:'DM Sans',sans-serif;}
+.quiz-pergunta-txt{font-family:'Fraunces',serif;font-size:clamp(20px,4vw,30px);font-weight:500;color:#f7f5f0;text-align:center;max-width:580px;line-height:1.3;}
+.quiz-opcoes-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:560px;}
+.quiz-btn-opcao{border:none;border-radius:14px;padding:20px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .15s,opacity .25s;font-family:'DM Sans',sans-serif;position:relative;overflow:hidden;}
+.quiz-btn-opcao::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.12);opacity:0;transition:opacity .15s;}
+.quiz-btn-opcao:hover:not(:disabled)::after{opacity:1;}
+.quiz-btn-opcao:active:not(:disabled){transform:scale(.97)!important;}
+.quiz-btn-opcao:disabled{cursor:default;}
+.quiz-letra{font-size:20px;font-weight:700;color:#fff;font-family:'DM Sans',sans-serif;}
+.quiz-opcao-txt{font-size:13px;font-weight:500;color:#fff;text-align:center;line-height:1.4;}
+.quiz-aguardando{font-size:14px;color:rgba(255,255,255,.45);text-align:center;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:8px;}
+#quiz-resultado-box{display:none;flex-direction:column;align-items:center;gap:14px;max-width:500px;width:100%;}
+.quiz-res-emoji{font-size:56px;line-height:1;}
+.quiz-res-titulo{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:#f7f5f0;text-align:center;}
+.quiz-res-correta{font-size:14px;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;text-align:center;}
+.quiz-res-correta strong{font-size:18px;}
+.quiz-res-ranking{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 20px;width:100%;}
+.quiz-res-ranking-titulo{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:10px;font-family:'DM Sans',sans-serif;}
+.quiz-res-ranking-item{font-size:13px;color:#e6edf3;padding:5px 0;font-family:'DM Sans',sans-serif;border-bottom:1px solid rgba(255,255,255,.06);}
+.quiz-res-ranking-item:last-child{border:none;}
+
+/* ── Exercise overlay ── */
+#exercicio-overlay{position:fixed;inset:0;background:var(--bg);z-index:600;display:none;flex-direction:column;overflow-y:auto;animation:exFadeIn .3s ease;}
+@keyframes exFadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.ex-topbar{background:var(--text);color:#f7f5f0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;flex-shrink:0;}
+.ex-topbar-badge{font-size:10px;font-weight:700;letter-spacing:.12em;background:rgba(255,255,255,.15);border-radius:4px;padding:2px 9px;font-family:'DM Sans',sans-serif;}
+.ex-topbar-tempo{font-size:11px;opacity:.55;font-family:'DM Sans',sans-serif;}
+.ex-body{max-width:680px;margin:0 auto;padding:36px 24px 60px;width:100%;display:flex;flex-direction:column;gap:20px;}
+.ex-titulo-txt{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--text);line-height:1.3;}
+.ex-instrucao-txt{font-size:14px;color:var(--muted);line-height:1.65;}
+.ex-cenarios{display:flex;flex-direction:column;gap:10px;}
+.ex-cenario-card{background:#fff;border:2px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;transition:border-color .2s,transform .15s;text-align:left;width:100%;}
+.ex-cenario-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.ex-cenario-card.selecionado{border-color:var(--accent);background:#eef4ff;pointer-events:none;}
+.ex-cenario-titulo{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.ex-cenario-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.ex-questoes{display:flex;flex-direction:column;gap:16px;}
+.ex-questao{display:flex;flex-direction:column;gap:6px;}
+.ex-questao-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text);}
+.ex-d-badge{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.ex-questao-enunciado{font-size:13px;color:var(--muted);line-height:1.6;padding-left:30px;}
+.ex-textarea{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);resize:vertical;min-height:76px;transition:border-color .2s;}
+.ex-textarea:focus{outline:none;border-color:var(--accent);}
+.ex-claude-link{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .2s;}
+.ex-claude-link:hover{opacity:.85;}
+.ex-submit-area{display:flex;gap:12px;align-items:center;padding-top:4px;}
+.ex-btn-enviar{background:var(--text);color:#f7f5f0;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.ex-btn-enviar:hover{opacity:.82;}
+.ex-btn-enviar:disabled{opacity:.38;cursor:default;}
+.ex-confirmado{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--green);font-weight:500;}
+
 /* SVG shared styles */
 svg .th{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;fill:var(--text);}
 svg .ts{font-family:'DM Sans',sans-serif;font-size:11px;fill:var(--muted);}
@@ -260,6 +318,45 @@ svg text{fill:var(--text);}
   <div id="bolhas-container"></div>
 </div>
 
+<!-- Exercício overlay -->
+<div id="exercicio-overlay" role="dialog" aria-modal="true" aria-labelledby="ex-titulo-txt">
+  <div class="ex-topbar">
+    <span class="ex-topbar-badge" id="ex-tipo-badge">EXERCÍCIO</span>
+    <span class="ex-topbar-tempo" id="ex-topbar-tempo"></span>
+  </div>
+  <div class="ex-body">
+    <div>
+      <div class="ex-titulo-txt" id="ex-titulo-txt"></div>
+      <p class="ex-instrucao-txt" id="ex-instrucao-txt"></p>
+    </div>
+    <div id="ex-conteudo"></div>
+    <div class="ex-submit-area" id="ex-submit-area" style="display:none">
+      <button class="ex-btn-enviar" id="ex-btn-enviar" onclick="enviarExercicio()">Enviar respostas →</button>
+    </div>
+    <div class="ex-confirmado" id="ex-confirmado" style="display:none" aria-live="polite">
+      ✅ Respostas enviadas! Aguarde o professor encerrar o exercício.
+    </div>
+  </div>
+</div>
+
+<!-- Quiz overlay -->
+<div id="quiz-overlay" role="dialog" aria-modal="true" aria-labelledby="quiz-pergunta-txt">
+  <div class="quiz-timer-wrap" role="timer" aria-label="Tempo restante para responder">
+    <div class="quiz-timer-bar" id="quiz-timer-bar"></div>
+  </div>
+  <div class="quiz-conn-error" id="quiz-conn-error" aria-live="assertive">
+    ⚠️ Conexão perdida — sua resposta pode não ser enviada
+  </div>
+  <div class="quiz-q-label" aria-hidden="true">Pergunta da turma</div>
+  <div class="quiz-pergunta-txt" id="quiz-pergunta-txt"></div>
+  <div class="quiz-opcoes-grid" id="quiz-opcoes-grid" role="group" aria-label="Opções de resposta"></div>
+  <div class="quiz-aguardando" id="quiz-aguardando" style="display:none" aria-live="polite">
+    <div class="pulse-dot" style="background:#a371f7"></div>
+    Resposta enviada — aguardando o professor...
+  </div>
+  <div id="quiz-resultado-box" aria-live="polite"></div>
+</div>
+
 <!-- Lobby de entrada -->
 <div id="lobby">
   <div class="lobby-card">
@@ -297,6 +394,7 @@ svg text{fill:var(--text);}
   </div>
 </div>
 
+<script src="/shared.js"></script>
 <script>
 let nomeAluno = '';
 let blocoAtualRender = -1;   // -1 = ainda não recebeu nenhum state_update
@@ -577,6 +675,7 @@ function conectarWS() {
 
   ws.onopen = () => {
     wsReady = true;
+    atualizarBannerConexao();
     if (nomeAluno) {
       ws.send(JSON.stringify({ type: 'aluno_connect', nome: nomeAluno }));
     }
@@ -584,6 +683,7 @@ function conectarWS() {
 
   ws.onclose = () => {
     wsReady = false;
+    atualizarBannerConexao();
     setTimeout(conectarWS, 3000);
   };
 
@@ -594,6 +694,11 @@ function conectarWS() {
     if (msg.type === 'resposta_confirmada') handleRespostaConfirmada(msg);
     if (msg.type === 'mostrar_bolhas') mostrarBolhas(msg.respostas);
     if (msg.type === 'fechar_bolhas') fecharBolhasOverlay();
+    if (msg.type === 'quiz_iniciado') mostrarQuiz(msg);
+    if (msg.type === 'quiz_resultado') mostrarResultadoQuiz(msg);
+    if (msg.type === 'quiz_encerrado') fecharQuiz();
+    if (msg.type === 'exercicio_iniciado') mostrarExercicio(msg);
+    if (msg.type === 'exercicio_encerrado') fecharExercicio();
   };
 }
 
@@ -833,8 +938,298 @@ function fecharBolhasOverlay() {
   document.body.style.overflow = '';
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// ── Exercícios ─────────────────────────────────────────────
+const EXERCICIOS_DATA = {
+  cenario_4d: {
+    badge: 'CENÁRIO 4D · 5 min', titulo: 'Aplique o Framework 4D',
+    instrucao: 'Escolha um cenário próximo do seu trabalho e responda as 4 perguntas:',
+    cenarios: [
+      { id:'juridico', titulo:'⚖️ Projeto Jurídico',
+        descricao:'Analisar 30 contratos de fornecedores e identificar cláusulas de risco.',
+        perguntas:{ delegacao:'Que partes da análise você faria sozinho vs com Claude?', descricao:'Como comunicaria ao Claude o que considera uma cláusula de risco?', discernimento:'Como verificaria se a análise do Claude está correta e completa?', diligencia:'Que cuidados teria com os dados e a responsabilidade pela análise?' }},
+      { id:'rh', titulo:'👥 Projeto de RH',
+        descricao:'Triagem inicial de 200 currículos para uma vaga sênior.',
+        perguntas:{ delegacao:'O que você deixaria Claude avaliar vs avaliaria pessoalmente?', descricao:'Como descreveria o perfil ideal para que Claude entenda seus critérios?', discernimento:'Como checaria se Claude não está introduzindo vieses na triagem?', diligencia:'Que questões éticas e de privacidade você precisaria considerar?' }},
+      { id:'marketing', titulo:'📣 Projeto de Marketing',
+        descricao:'Criar uma campanha de e-mail para clientes do escritório.',
+        perguntas:{ delegacao:'Quais aspectos criativos você desenvolveria vs delegaria ao Claude?', descricao:'Como comunicaria o tom, propósito e critérios de sucesso?', discernimento:'Como avaliaria se os e-mails gerados atendem às suas necessidades?', diligencia:'Que considerações de transparência e responsabilidade seriam importantes?' }},
+      { id:'comercial', titulo:'🤝 Projeto Comercial',
+        descricao:'Elaborar propostas personalizadas para 30 leads em diferentes estágios do funil de vendas.',
+        perguntas:{ delegacao:'O que você deixaria Claude redigir vs construiria com seu conhecimento dos clientes?', descricao:'Como comunicaria ao Claude o perfil de cada lead e o tom adequado para a proposta?', discernimento:'Como avaliaria se as propostas do Claude soam genuínas e alinhadas ao relacionamento?', diligencia:'Que informações confidenciais de negociação você não compartilharia com Claude?' }},
+      { id:'ti', titulo:'💻 Projeto de TI',
+        descricao:'Documentar processos e criar manual de onboarding técnico para novos colaboradores.',
+        perguntas:{ delegacao:'Quais partes Claude pode estruturar vs você precisa validar tecnicamente?', descricao:'Como explicaria ao Claude o nível técnico do público-alvo e as ferramentas usadas?', discernimento:'Como verificaria se a documentação está correta e aplicável ao seu ambiente?', diligencia:'Que detalhes de infraestrutura e segurança não devem constar na documentação pública?' }},
+      { id:'fiscal', titulo:'📊 Projeto Fiscal',
+        descricao:'Revisar declarações de clientes e identificar inconsistências antes do envio à Receita.',
+        perguntas:{ delegacao:'Quais verificações iniciais você delegaria ao Claude vs faria pessoalmente?', descricao:'Como explicaria ao Claude os critérios de inconsistência relevantes para o tipo de declaração?', discernimento:'Como garantiria que as análises do Claude estão alinhadas com a legislação vigente?', diligencia:'Que responsabilidades legais você mantém mesmo que Claude auxilie na revisão?' }},
+      { id:'financeiro', titulo:'💰 Projeto Financeiro / ADM',
+        descricao:'Preparar relatório mensal de gestão financeira com análise de variações de receita e despesa.',
+        perguntas:{ delegacao:'Quais análises você deixaria Claude elaborar vs produziria com sua expertise?', descricao:'Como comunicaria ao Claude o contexto do negócio para interpretar os números corretamente?', discernimento:'Como verificaria se as análises e projeções do Claude são consistentes com a realidade?', diligencia:'Que cuidados teria com dados financeiros confidenciais ao usar Claude?' }},
+      { id:'planejamento', titulo:'🎯 Planejamento / Diretoria',
+        descricao:'Elaborar relatório estratégico trimestral com análise de cenários para a diretoria.',
+        perguntas:{ delegacao:'Que partes Claude pode estruturar vs você precisa desenvolver com visão de negócio?', descricao:'Como comunicaria ao Claude o contexto estratégico, KPIs e o público decisor?', discernimento:'Como avaliaria se as análises do Claude refletem a realidade competitiva do negócio?', diligencia:'Que informações estratégicas confidenciais não devem ser compartilhadas com Claude?' }}
+    ]
+  },
+  chat_livre: {
+    badge: 'CHAT LIVRE · 10 min', titulo: 'Explore com Claude',
+    instrucao: 'Abra o Claude e converse por 10 minutos sobre algo que você conhece bem ou quer aprender. Depois registre suas observações:',
+    observacoes: [
+      'Um momento em que Claude ampliou seu pensamento ou trouxe algo inesperado',
+      'Um momento em que você precisou corrigir, clarificar ou questionar Claude',
+      'Um momento em que sua expertise foi essencial para avaliar a resposta'
+    ]
+  },
+  reflexao: {
+    badge: 'REFLEXÃO · 5 min', titulo: 'Reflexão Final',
+    instrucao: 'Responda com honestidade — não existe resposta certa aqui.',
+    perguntas: [
+      'Qual dos 4Ds você já domina melhor hoje?',
+      'Qual D precisa de mais desenvolvimento no seu trabalho?',
+      'Uma situação recente onde o framework 4D teria ajudado — o que você teria feito diferente?',
+      'Qual habilidade de fluência em IA você quer desenvolver nos próximos 30 dias?'
+    ]
+  }
+};
+
+const D_CORES  = { delegacao:'#2d5fa3', descricao:'#1a7a45', discernimento:'#6238a8', diligencia:'#b8620a' };
+const D_NOMES  = { delegacao:'Delegação', descricao:'Descrição', discernimento:'Discernimento', diligencia:'Diligência' };
+
+let exercicioAtivo = null;
+let exercicioCenario = null;
+let exercicioEnviado = false;
+
+function mostrarExercicio(msg) {
+  const data = EXERCICIOS_DATA[msg.tipo];
+  if (!data) return;
+  exercicioAtivo = msg.tipo;
+  exercicioCenario = null;
+  exercicioEnviado = false;
+
+  document.getElementById('ex-tipo-badge').textContent = data.badge;
+  document.getElementById('ex-titulo-txt').textContent = data.titulo;
+  document.getElementById('ex-instrucao-txt').textContent = data.instrucao;
+  document.getElementById('ex-confirmado').style.display = 'none';
+  document.getElementById('ex-submit-area').style.display = 'none';
+  document.getElementById('ex-btn-enviar').disabled = false;
+
+  _renderExConteudo(msg.tipo, data);
+
+  document.getElementById('exercicio-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('ex-body') && document.getElementById('ex-body').scrollTo(0, 0);
+}
+
+function _renderExConteudo(tipo, data) {
+  const el = document.getElementById('ex-conteudo');
+  if (tipo === 'cenario_4d') {
+    el.innerHTML = `<div class="ex-cenarios">${data.cenarios.map(c =>
+      `<button class="ex-cenario-card" id="ex-card-${c.id}" onclick="selecionarCenario('${c.id}')">
+        <div class="ex-cenario-titulo">${c.titulo}</div>
+        <div class="ex-cenario-desc">${c.descricao}</div>
+      </button>`).join('')}</div>`;
+  } else if (tipo === 'chat_livre') {
+    document.getElementById('ex-submit-area').style.display = 'flex';
+    el.innerHTML = `
+      <a class="ex-claude-link" href="https://claude.ai" target="_blank" rel="noopener">🤖 Abrir Claude →</a>
+      <div class="ex-questoes">${data.observacoes.map((obs, i) =>
+        `<div class="ex-questao">
+          <label class="ex-questao-label" for="ex-obs-${i}">
+            <span style="font-size:16px">${['💡','🔄','🎯'][i]}</span> Observação ${i+1}
+          </label>
+          <div class="ex-questao-enunciado">${obs}</div>
+          <textarea class="ex-textarea" id="ex-obs-${i}" maxlength="500" placeholder="Escreva sua observação..."></textarea>
+        </div>`).join('')}</div>`;
+  } else if (tipo === 'reflexao') {
+    document.getElementById('ex-submit-area').style.display = 'flex';
+    const cores = ['#2d5fa3','#1a7a45','#6238a8','#b8620a'];
+    el.innerHTML = `<div class="ex-questoes">${data.perguntas.map((p, i) =>
+      `<div class="ex-questao">
+        <label class="ex-questao-label" for="ex-ref-${i}">
+          <div class="ex-d-badge" style="background:${cores[i]}">${i+1}</div> Pergunta ${i+1}
+        </label>
+        <div class="ex-questao-enunciado">${p}</div>
+        <textarea class="ex-textarea" id="ex-ref-${i}" maxlength="500" placeholder="Sua reflexão..."></textarea>
+      </div>`).join('')}</div>`;
+  }
+}
+
+function selecionarCenario(id) {
+  const data = EXERCICIOS_DATA.cenario_4d;
+  const cenario = data.cenarios.find(c => c.id === id);
+  if (!cenario) return;
+  exercicioCenario = id;
+
+  const el = document.getElementById('ex-conteudo');
+  el.innerHTML = `
+    <div class="ex-cenarios">
+      <div class="ex-cenario-card selecionado">
+        <div class="ex-cenario-titulo">${cenario.titulo}</div>
+        <div class="ex-cenario-desc">${cenario.descricao}</div>
+      </div>
+    </div>
+    <div class="ex-questoes">${Object.entries(cenario.perguntas).map(([d, pergunta]) =>
+      `<div class="ex-questao">
+        <label class="ex-questao-label" for="ex-4d-${d}">
+          <div class="ex-d-badge" style="background:${D_CORES[d]}">${d[0].toUpperCase()}</div>
+          ${D_NOMES[d]}
+        </label>
+        <div class="ex-questao-enunciado">${pergunta}</div>
+        <textarea class="ex-textarea" id="ex-4d-${d}" maxlength="500" placeholder="Sua resposta..."></textarea>
+      </div>`).join('')}</div>`;
+  document.getElementById('ex-submit-area').style.display = 'flex';
+}
+
+function enviarExercicio() {
+  if (exercicioEnviado) return;
+  let dados = {};
+
+  if (exercicioAtivo === 'cenario_4d') {
+    if (!exercicioCenario) { alert('Escolha um cenário primeiro.'); return; }
+    const ds = ['delegacao','descricao','discernimento','diligencia'];
+    const resps = Object.fromEntries(ds.map(d => [d, (document.getElementById(`ex-4d-${d}`)?.value||'').trim().slice(0,500)]));
+    if (!Object.values(resps).some(Boolean)) { alert('Responda pelo menos uma pergunta.'); return; }
+    dados = { cenario: exercicioCenario, respostas: resps };
+  } else if (exercicioAtivo === 'chat_livre') {
+    const obs = [0,1,2].map(i => (document.getElementById(`ex-obs-${i}`)?.value||'').trim().slice(0,500));
+    if (!obs.some(Boolean)) { alert('Registre pelo menos uma observação.'); return; }
+    dados = { observacoes: obs };
+  } else if (exercicioAtivo === 'reflexao') {
+    const refs = [0,1,2,3].map(i => (document.getElementById(`ex-ref-${i}`)?.value||'').trim().slice(0,500));
+    if (!refs.some(Boolean)) { alert('Responda pelo menos uma pergunta.'); return; }
+    dados = { respostas: refs };
+  }
+
+  exercicioEnviado = true;
+  document.getElementById('ex-btn-enviar').disabled = true;
+  document.getElementById('ex-confirmado').style.display = 'flex';
+  wsSend({ type: 'resposta_exercicio', dados });
+}
+
+function fecharExercicio() {
+  document.getElementById('exercicio-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  exercicioAtivo = null;
+  exercicioCenario = null;
+  exercicioEnviado = false;
+}
+
+// ── Quiz ───────────────────────────────────────────────────
+const QUIZ_SIMBOLOS = ['▲','◆','●','■']; // diferenciação além da cor (daltônicos)
+let quizRespondeu = false;
+let quizOpcaoSelecionada = null;
+let quizTimerTimeout = null;
+let quizTempoInicio = null;
+let quizAtivo = false;
+
+function mostrarQuiz(msg) {
+  quizRespondeu = false;
+  quizOpcaoSelecionada = null;
+  quizTempoInicio = Date.now();
+  quizAtivo = true;
+  clearTimeout(quizTimerTimeout);
+
+  document.getElementById('quiz-pergunta-txt').textContent = msg.pergunta;
+
+  const grid = document.getElementById('quiz-opcoes-grid');
+  grid.style.display = 'grid';
+  grid.innerHTML = msg.opcoes.map((op, i) => `
+    <button class="quiz-btn-opcao"
+      style="background:${QUIZ_CORES[i]}"
+      id="quiz-btn-${i}"
+      tabindex="0"
+      aria-label="Opção ${QUIZ_LETRAS[i]}: ${esc(op)}"
+      onclick="responderQuiz(${i})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();responderQuiz(${i});}">
+      <span class="quiz-simbolo" aria-hidden="true">${QUIZ_SIMBOLOS[i]}</span>
+      <span class="quiz-letra" aria-hidden="true">${QUIZ_LETRAS[i]}</span>
+      <span class="quiz-opcao-txt">${esc(op)}</span>
+    </button>
+  `).join('');
+
+  // Foco no primeiro botão para navegação por teclado
+  setTimeout(() => document.getElementById('quiz-btn-0')?.focus(), 50);
+
+  document.getElementById('quiz-aguardando').style.display = 'none';
+  atualizarBannerConexao();
+  const resBox = document.getElementById('quiz-resultado-box');
+  resBox.style.display = 'none';
+  resBox.innerHTML = '';
+
+  const overlay = document.getElementById('quiz-overlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  const bar = document.getElementById('quiz-timer-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  const tempo = msg.tempo || 20;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${tempo}s linear`;
+    bar.style.width = '0%';
+  }));
+
+  quizTimerTimeout = setTimeout(() => {
+    document.querySelectorAll('.quiz-btn-opcao').forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
+    if (!quizRespondeu) document.getElementById('quiz-aguardando').style.display = 'flex';
+  }, tempo * 1000);
+}
+
+function atualizarBannerConexao() {
+  const banner = document.getElementById('quiz-conn-error');
+  if (!banner || !quizAtivo) return;
+  banner.style.display = wsReady ? 'none' : 'flex';
+}
+
+function responderQuiz(opcao) {
+  if (quizRespondeu) return;
+  quizRespondeu = true;
+  quizOpcaoSelecionada = opcao;
+  const tempo_ms = Date.now() - quizTempoInicio;
+
+  document.querySelectorAll('.quiz-btn-opcao').forEach((b, i) => {
+    b.disabled = true;
+    if (i !== opcao) { b.style.opacity = '0.3'; b.style.transform = 'scale(0.94)'; }
+    else { b.style.transform = 'scale(1.06)'; b.style.boxShadow = '0 0 0 3px rgba(255,255,255,.5)'; }
+  });
+  document.getElementById('quiz-aguardando').style.display = 'flex';
+  wsSend({ type: 'resposta_quiz', opcao, tempo_ms });
+}
+
+function mostrarResultadoQuiz(msg) {
+  clearTimeout(quizTimerTimeout);
+  document.getElementById('quiz-opcoes-grid').style.display = 'none';
+  document.getElementById('quiz-aguardando').style.display = 'none';
+
+  const acertou = quizRespondeu && quizOpcaoSelecionada === msg.correta;
+  const naoRespondeu = !quizRespondeu;
+
+  const resBox = document.getElementById('quiz-resultado-box');
+  resBox.style.display = 'flex';
+  resBox.innerHTML = `
+    <div class="quiz-res-emoji">${naoRespondeu ? '⏱️' : acertou ? '🎉' : '❌'}</div>
+    <div class="quiz-res-titulo">${naoRespondeu ? 'Tempo esgotado' : acertou ? 'Correto!' : 'Errou desta vez'}</div>
+    <div class="quiz-res-correta">
+      Resposta correta: <strong style="color:${QUIZ_CORES[msg.correta]}">${QUIZ_LETRAS[msg.correta]}</strong>
+    </div>
+    ${msg.ranking && msg.ranking.length ? `
+      <div class="quiz-res-ranking">
+        <div class="quiz-res-ranking-titulo">⚡ Responderam mais rápido</div>
+        ${msg.ranking.map((r,i) => `<div class="quiz-res-ranking-item">${medalha(i)} ${esc(r.nome)}</div>`).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+function fecharQuiz() {
+  clearTimeout(quizTimerTimeout);
+  quizAtivo = false;
+  const overlay = document.getElementById('quiz-overlay');
+  overlay.style.display = 'none';
+  document.getElementById('quiz-opcoes-grid').style.display = 'grid';
+  document.getElementById('quiz-conn-error').style.display = 'none';
+  document.body.style.overflow = '';
+  quizRespondeu = false;
+  quizOpcaoSelecionada = null;
 }
 
 // Fecha overlay com ESC
@@ -844,6 +1239,7 @@ document.addEventListener('keydown', e => {
 
 document.getElementById('lobby-codigo').focus();
 conectarWS();
+
 </script>
 </body>
 </html>
