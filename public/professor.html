@@ -709,6 +709,9 @@ function conectarWS() {
     if (msg.type === 'quiz_resposta_parcial') handleQuizRespostaParcial(msg);
     if (msg.type === 'quiz_resultado') handleQuizResultado(msg);
     if (msg.type === 'exercicio_resposta') handleExercicioResposta(msg);
+    if (msg.type === 'cam_subscribe') _camOnSubscribe(msg);
+    if (msg.type === 'cam_answer') _camOnAnswer(msg);
+    if (msg.type === 'cam_ice' && msg.from !== undefined) _camOnIceFromStudent(msg);
   };
 }
 function setWsStatus(s, t) {
@@ -1241,11 +1244,13 @@ carregarConteudo().then(() => {
 carregarCodigo();
 conectarWS();
 
-// ── Câmera ao vivo ────────────────────────────────────────────
+// ── Câmera ao vivo (WebRTC) ───────────────────────────────────
 let _camStream = null;
-let _camInterval = null;
-const _camCanvas = document.createElement('canvas');
-_camCanvas.width = 320; _camCanvas.height = 240;
+const _peerConns = new Map(); // studentId → RTCPeerConnection
+const _iceConfig = { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+] };
 
 async function toggleCam() {
   if (_camStream) { stopCam(); } else { await startCam(); }
@@ -1253,7 +1258,10 @@ async function toggleCam() {
 
 async function startCam() {
   try {
-    _camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' }, audio: false });
+    _camStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+      audio: false,
+    });
     const video = document.getElementById('cam-video');
     video.srcObject = _camStream;
     await video.play();
@@ -1262,7 +1270,7 @@ async function startCam() {
     btn.textContent = '🔴 Ao vivo';
     btn.style.color = 'var(--red)';
     btn.style.borderColor = 'var(--red)';
-    _camInterval = setInterval(_sendCamFrame, 150);
+    wsSend({ type: 'cam_start' });
   } catch(e) {
     alert('Câmera não disponível: ' + e.message);
   }
@@ -1270,7 +1278,8 @@ async function startCam() {
 
 function stopCam() {
   if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
-  clearInterval(_camInterval); _camInterval = null;
+  _peerConns.forEach(pc => pc.close());
+  _peerConns.clear();
   document.getElementById('cam-pip').style.display = 'none';
   const btn = document.getElementById('btn-cam');
   btn.textContent = '📷 Câmera';
@@ -1279,18 +1288,37 @@ function stopCam() {
   wsSend({ type: 'cam_stop' });
 }
 
-function _sendCamFrame() {
-  if (!wsReady || !_camStream) return;
-  const video = document.getElementById('cam-video');
-  if (video.readyState < 2) return;
-  const ctx = _camCanvas.getContext('2d');
-  // Espelhar horizontalmente para que chegue correto ao aluno
-  ctx.save();
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, -320, 0, 320, 240);
-  ctx.restore();
-  const data = _camCanvas.toDataURL('image/jpeg', 0.4);
-  ws.send(JSON.stringify({ type: 'cam_frame', data }));
+async function _camOnSubscribe(msg) {
+  if (!_camStream) return;
+  const sid = msg.from;
+  if (_peerConns.has(sid)) _peerConns.get(sid).close();
+
+  const pc = new RTCPeerConnection(_iceConfig);
+  _peerConns.set(sid, pc);
+
+  _camStream.getTracks().forEach(t => pc.addTrack(t, _camStream));
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) wsSend({ type: 'cam_ice', to: sid, candidate: e.candidate });
+  };
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'failed' || pc.connectionState === 'closed')
+      _peerConns.delete(sid);
+  };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  wsSend({ type: 'cam_offer', to: sid, sdp: offer });
+}
+
+async function _camOnAnswer(msg) {
+  const pc = _peerConns.get(msg.from);
+  if (pc) await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+}
+
+async function _camOnIceFromStudent(msg) {
+  const pc = _peerConns.get(msg.from);
+  if (pc) try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
 }
 </script>
 

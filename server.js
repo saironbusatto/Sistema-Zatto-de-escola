@@ -116,7 +116,10 @@ let aulaState = {
   respostas: [],
   quiz: null,      // { pergunta, opcoes, correta, tempo, respostas: Map<ws, {opcao,tempo_ms,nome}> }
   exercicio: null, // { tipo, respostas: [{nome, dados, ts}] }
+  camAtiva: false,
 };
+
+let _nextClientId = 1;
 
 // Clientes separados por tipo
 const professores = new Set();
@@ -143,6 +146,7 @@ function sendState(ws) {
     respostas: aulaState.respostas,
     alunosOnline: alunosOnlineCount(),
     nomeAlunos: [...alunos.values()],
+    camAtiva: aulaState.camAtiva,
   }));
 }
 
@@ -154,6 +158,7 @@ function broadcastState() {
     respostas: aulaState.respostas,
     alunosOnline: alunosOnlineCount(),
     nomeAlunos: [...alunos.values()],
+    camAtiva: aulaState.camAtiva,
   });
   for (const client of wss.clients) {
     if (client.readyState === 1) client.send(msg);
@@ -161,24 +166,21 @@ function broadcastState() {
 }
 
 wss.on('connection', (ws) => {
-  // Rate limiting: máx 20 mensagens por segundo por cliente
+  ws._id = _nextClientId++;
+  ws.send(JSON.stringify({ type: 'client_id', id: ws._id }));
+
+  // Rate limiting
   ws._msgCount = 0;
   ws._msgReset = setInterval(() => { ws._msgCount = 0; }, 1000);
-
   ws._drawCount = 0;
   ws._drawReset = setInterval(() => { ws._drawCount = 0; }, 1000);
-  ws._camCount = 0;
-  ws._camReset = setInterval(() => { ws._camCount = 0; }, 1000);
 
   ws.on('message', (raw) => {
     if (raw.length > 65536) return; // 64KB — aceita frames de câmera
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
-    // limites por tipo de mensagem
     if (msg.type === 'draw_stroke') {
       if (++ws._drawCount > 200) return;
-    } else if (msg.type === 'cam_frame') {
-      if (++ws._camCount > 15) return; // máx 15fps
     } else {
       if (++ws._msgCount > 20) return;
     }
@@ -255,20 +257,64 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      case 'cam_frame': {
+      case 'cam_start': {
         if (!professores.has(ws)) break;
-        const frameMsg = JSON.stringify({ type: 'cam_frame', data: msg.data });
-        for (const [alunoWs] of alunos) {
-          if (alunoWs.readyState === 1) alunoWs.send(frameMsg);
-        }
+        aulaState.camAtiva = true;
+        broadcastState();
         break;
       }
 
       case 'cam_stop': {
         if (!professores.has(ws)) break;
+        aulaState.camAtiva = false;
+        broadcastState();
         const camStopMsg = JSON.stringify({ type: 'cam_stop' });
         for (const [alunoWs] of alunos) {
           if (alunoWs.readyState === 1) alunoWs.send(camStopMsg);
+        }
+        break;
+      }
+
+      case 'cam_subscribe': {
+        // Aluno quer receber o vídeo → avisar o professor
+        if (!alunos.has(ws)) break;
+        for (const profWs of professores) {
+          if (profWs.readyState === 1)
+            profWs.send(JSON.stringify({ type: 'cam_subscribe', from: ws._id }));
+        }
+        break;
+      }
+
+      case 'cam_offer': {
+        // Professor envia offer para aluno específico
+        if (!professores.has(ws)) break;
+        const targetOffer = [...wss.clients].find(c => c._id === msg.to);
+        if (targetOffer?.readyState === 1)
+          targetOffer.send(JSON.stringify({ type: 'cam_offer', sdp: msg.sdp }));
+        break;
+      }
+
+      case 'cam_answer': {
+        // Aluno responde com answer → professor
+        if (!alunos.has(ws)) break;
+        for (const profWs of professores) {
+          if (profWs.readyState === 1)
+            profWs.send(JSON.stringify({ type: 'cam_answer', from: ws._id, sdp: msg.sdp }));
+        }
+        break;
+      }
+
+      case 'cam_ice': {
+        // ICE candidate — professor→aluno ou aluno→professor
+        if (professores.has(ws)) {
+          const targetIce = [...wss.clients].find(c => c._id === msg.to);
+          if (targetIce?.readyState === 1)
+            targetIce.send(JSON.stringify({ type: 'cam_ice', candidate: msg.candidate }));
+        } else if (alunos.has(ws)) {
+          for (const profWs of professores) {
+            if (profWs.readyState === 1)
+              profWs.send(JSON.stringify({ type: 'cam_ice', from: ws._id, candidate: msg.candidate }));
+          }
         }
         break;
       }
