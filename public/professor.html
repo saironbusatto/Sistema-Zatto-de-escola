@@ -237,6 +237,16 @@ body{
 .liberar-btn{background:var(--green);color:#0d1117;border:none;border-radius:6px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;width:100%;font-family:'IBM Plex Sans',sans-serif;transition:opacity .2s;}
 .liberar-btn:hover{opacity:.85;}
 .liberar-btn:disabled{background:var(--bg3);color:var(--muted);cursor:default;}
+
+/* ── Cam PiP ── */
+#cam-pip{position:fixed;bottom:20px;left:272px;z-index:400;display:none;flex-direction:column;align-items:center;gap:6px;}
+#cam-pip-inner{width:148px;height:111px;border-radius:10px;overflow:hidden;background:#000;border:2px solid var(--red);box-shadow:0 0 0 3px rgba(255,107,107,.12),0 8px 24px rgba(0,0,0,.5);position:relative;}
+#cam-video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.cam-live-badge{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:4px;}
+.cam-live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:camPulse 1s ease infinite;}
+@keyframes camPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+#cam-pip-stop{background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;width:100%;transition:all .2s;}
+#cam-pip-stop:hover{background:var(--red);color:#fff;border-color:var(--red);}
 </style>
 </head>
 <body>
@@ -271,6 +281,7 @@ body{
     <div class="topbar-right">
       <span class="ws-badge ws-conn" id="ws-status">conectando...</span>
       <div class="timer" id="timer" onclick="toggleTimer()" title="Iniciar/pausar">00:00</div>
+      <button class="btn" id="btn-cam" onclick="toggleCam()" title="Ligar câmera para alunos">📷 Câmera</button>
       <button class="btn btn-primary" onclick="liberarProximo()">Liberar próximo ▶</button>
       <button class="btn" onclick="resetarAula()">Reiniciar</button>
     </div>
@@ -1229,6 +1240,67 @@ carregarConteudo().then(() => {
 });
 carregarCodigo();
 conectarWS();
+
+// ── Câmera ao vivo ────────────────────────────────────────────
+let _camStream = null;
+let _camInterval = null;
+const _camCanvas = document.createElement('canvas');
+_camCanvas.width = 320; _camCanvas.height = 240;
+
+async function toggleCam() {
+  if (_camStream) { stopCam(); } else { await startCam(); }
+}
+
+async function startCam() {
+  try {
+    _camStream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' }, audio: false });
+    const video = document.getElementById('cam-video');
+    video.srcObject = _camStream;
+    await video.play();
+    document.getElementById('cam-pip').style.display = 'flex';
+    const btn = document.getElementById('btn-cam');
+    btn.textContent = '🔴 Ao vivo';
+    btn.style.color = 'var(--red)';
+    btn.style.borderColor = 'var(--red)';
+    _camInterval = setInterval(_sendCamFrame, 150);
+  } catch(e) {
+    alert('Câmera não disponível: ' + e.message);
+  }
+}
+
+function stopCam() {
+  if (_camStream) { _camStream.getTracks().forEach(t => t.stop()); _camStream = null; }
+  clearInterval(_camInterval); _camInterval = null;
+  document.getElementById('cam-pip').style.display = 'none';
+  const btn = document.getElementById('btn-cam');
+  btn.textContent = '📷 Câmera';
+  btn.style.color = '';
+  btn.style.borderColor = '';
+  wsSend({ type: 'cam_stop' });
+}
+
+function _sendCamFrame() {
+  if (!wsReady || !_camStream) return;
+  const video = document.getElementById('cam-video');
+  if (video.readyState < 2) return;
+  const ctx = _camCanvas.getContext('2d');
+  // Espelhar horizontalmente para que chegue correto ao aluno
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, -320, 0, 320, 240);
+  ctx.restore();
+  const data = _camCanvas.toDataURL('image/jpeg', 0.4);
+  ws.send(JSON.stringify({ type: 'cam_frame', data }));
+}
 </script>
+
+<!-- Câmera PiP -->
+<div id="cam-pip">
+  <div id="cam-pip-inner">
+    <video id="cam-video" autoplay muted playsinline></video>
+    <div class="cam-live-badge"><div class="cam-live-dot"></div>AO VIVO</div>
+  </div>
+  <button id="cam-pip-stop" onclick="stopCam()">✕ Desligar câmera</button>
+</div>
 </body>
 </html>

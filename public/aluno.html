@@ -149,6 +149,14 @@ body{
 .lobby-back{background:transparent;border:none;color:#7d8590;font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-align:center;}
 .lobby-back:hover{color:#e6edf3;}
 
+/* ── Câmera do professor (bolha flutuante) ── */
+#prof-cam-bubble{position:fixed;bottom:24px;right:24px;z-index:410;display:none;flex-direction:column;align-items:center;gap:6px;}
+#prof-cam-circle{width:88px;height:88px;border-radius:50%;overflow:hidden;border:2.5px solid #e03131;box-shadow:0 0 0 4px rgba(224,49,49,.12),0 8px 28px rgba(0,0,0,.25);position:relative;background:#1c1a16;cursor:pointer;}
+#prof-cam-img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.prof-cam-badge{background:#e03131;color:#fff;font-size:8px;font-weight:700;letter-spacing:.12em;padding:2px 7px;border-radius:10px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.prof-cam-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:camDotPulse 1s ease infinite;flex-shrink:0;}
+@keyframes camDotPulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+
 /* ── Bolhas overlay ── */
 #bolhas-overlay{position:fixed;inset:0;background:rgba(15,12,8,0.92);z-index:500;display:none;overflow:hidden;}
 #bolhas-titulo{position:absolute;top:0;left:0;right:0;padding:20px 24px;text-align:center;font-family:'Fraunces',serif;font-size:15px;font-weight:300;color:rgba(255,255,255,0.35);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;}
@@ -509,6 +517,14 @@ svg text{fill:var(--text);}
 </div>
 
 <!-- Lobby de entrada -->
+<!-- Câmera ao vivo do professor -->
+<div id="prof-cam-bubble">
+  <div id="prof-cam-circle">
+    <img id="prof-cam-img" alt="Professor ao vivo">
+  </div>
+  <div class="prof-cam-badge"><div class="prof-cam-dot"></div>AO VIVO</div>
+</div>
+
 <div id="lobby">
   <div class="lobby-card">
     <div class="lobby-brand">
@@ -892,6 +908,8 @@ function conectarWS() {
     if (msg.type === 'exercicio_encerrado') fecharExercicio();
     if (msg.type === 'draw_stroke') handleDrawStroke(msg);
     if (msg.type === 'draw_clear') handleDrawClear(msg);
+    if (msg.type === 'cam_frame') handleCamFrame(msg);
+    if (msg.type === 'cam_stop') handleCamStop();
   };
 }
 
@@ -924,6 +942,18 @@ function handleDrawClear(msg) {
   const canvas = getDrawCanvas(msg.blocoId);
   if (!canvas) return;
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function handleCamFrame(msg) {
+  const bubble = document.getElementById('prof-cam-bubble');
+  const img = document.getElementById('prof-cam-img');
+  bubble.style.display = 'flex';
+  img.src = msg.data;
+}
+
+function handleCamStop() {
+  document.getElementById('prof-cam-bubble').style.display = 'none';
+  document.getElementById('prof-cam-img').src = '';
 }
 
 function wsSend(data) {
@@ -1475,7 +1505,16 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharBolhasOverlay();
 });
 
-document.getElementById('lobby-codigo').focus();
+// Se veio do index.html com ?name= já validado, pular o lobby
+const _urlParams = new URLSearchParams(location.search);
+const _nomeUrl = _urlParams.get('name') || _urlParams.get('nome');
+if (_nomeUrl) {
+  nomeAluno = _nomeUrl.trim().slice(0, 40);
+  document.getElementById('lobby').style.display = 'none';
+} else {
+  document.getElementById('lobby-codigo').focus();
+}
+
 carregarConteudo().then(conectarWS);
 
 </script>

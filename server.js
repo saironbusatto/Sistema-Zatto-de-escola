@@ -167,14 +167,18 @@ wss.on('connection', (ws) => {
 
   ws._drawCount = 0;
   ws._drawReset = setInterval(() => { ws._drawCount = 0; }, 1000);
+  ws._camCount = 0;
+  ws._camReset = setInterval(() => { ws._camCount = 0; }, 1000);
 
   ws.on('message', (raw) => {
-    if (raw.length > 8192) return;
+    if (raw.length > 65536) return; // 64KB — aceita frames de câmera
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
-    // draw_stroke tem volume alto — limite próprio (200/s)
+    // limites por tipo de mensagem
     if (msg.type === 'draw_stroke') {
       if (++ws._drawCount > 200) return;
+    } else if (msg.type === 'cam_frame') {
+      if (++ws._camCount > 15) return; // máx 15fps
     } else {
       if (++ws._msgCount > 20) return;
     }
@@ -248,6 +252,24 @@ wss.on('connection', (ws) => {
       case 'fechar_bolhas': {
         if (!professores.has(ws)) break;
         broadcast({ type: 'fechar_bolhas' });
+        break;
+      }
+
+      case 'cam_frame': {
+        if (!professores.has(ws)) break;
+        const frameMsg = JSON.stringify({ type: 'cam_frame', data: msg.data });
+        for (const [alunoWs] of alunos) {
+          if (alunoWs.readyState === 1) alunoWs.send(frameMsg);
+        }
+        break;
+      }
+
+      case 'cam_stop': {
+        if (!professores.has(ws)) break;
+        const camStopMsg = JSON.stringify({ type: 'cam_stop' });
+        for (const [alunoWs] of alunos) {
+          if (alunoWs.readyState === 1) alunoWs.send(camStopMsg);
+        }
         break;
       }
 
