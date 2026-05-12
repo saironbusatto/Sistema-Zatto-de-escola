@@ -5,14 +5,17 @@ const bcrypt   = require('bcrypt');
 const { WebSocketServer } = require('ws');
 const http     = require('http');
 const path     = require('path');
+const { clerkMiddleware, getAuth, clerkClient } = require('@clerk/express');
 const { getDb }        = require('./db/database.js');
 const adminRouter      = require('./routes/admin.js');
 const contentRouter    = require('./routes/content.js');
+const platformRouter   = require('./routes/platform.js');
 const { requireAdminPage } = require('./middleware/adminAuth.js');
 
 const app    = express();
 const server = http.createServer(app);
 const wss    = new WebSocketServer({ server });
+const CLERK_ENABLED = Boolean(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY);
 
 // ── Garante que SESSION_SECRET existe ────────────────────────
 if (!process.env.SESSION_SECRET) {
@@ -60,6 +63,10 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '64kb' }));
 
+if (CLERK_ENABLED) {
+  app.use(clerkMiddleware());
+}
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -77,6 +84,7 @@ app.use('/api/admin', adminRouter);
 
 // ── API conteúdo (pública — usada pela aula ao vivo) ─────────
 app.use('/api/content', contentRouter);
+app.use('/api/platform', platformRouter);
 
 // ── Sessão da aula (módulo ativo + código da sala) ────────────
 app.get('/api/session', (req, res) => {
@@ -85,6 +93,59 @@ app.get('/api/session', (req, res) => {
     code: roomCode,
   });
 });
+
+// ── Config público do Clerk para páginas HTML estáticas ─────
+app.get('/api/clerk/config', (req, res) => {
+  if (!CLERK_ENABLED) return res.json({ enabled: false });
+  res.json({
+    enabled: true,
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    frontendApiUrl: process.env.CLERK_FRONTEND_API_URL || null,
+  });
+});
+
+// Perfil autenticado via Clerk (backend SDK).
+app.get('/api/auth/me', async (req, res) => {
+  if (!CLERK_ENABLED) return res.status(503).json({ error: 'Clerk desabilitado no servidor' });
+  try {
+    const { isAuthenticated, userId } = getAuth(req);
+    if (!isAuthenticated || !userId) return res.status(401).json({ error: 'User not authenticated' });
+    const user = await clerkClient.users.getUser(userId);
+    return res.json(user);
+  } catch (e) {
+    return res.status(500).json({ error: 'Falha ao buscar usuário no Clerk' });
+  }
+});
+
+function requireClerkAuthPage(req, res, next) {
+  if (!CLERK_ENABLED) return next();
+  const auth = getAuth(req);
+  if (auth?.isAuthenticated) return next();
+  const redirectUrl = encodeURIComponent(req.originalUrl || '/');
+  return res.redirect(`/auth/sign-in.html?redirect_url=${redirectUrl}`);
+}
+
+function requirePlatformRolePage(role) {
+  return async (req, res, next) => {
+    if (!CLERK_ENABLED) return next();
+    const auth = getAuth(req);
+    if (!auth?.isAuthenticated) {
+      const redirectUrl = encodeURIComponent(req.originalUrl || '/');
+      return res.redirect(`/auth/sign-in.html?redirect_url=${redirectUrl}`);
+    }
+    const db = getDb();
+    const user = db.prepare('SELECT role FROM platform_users WHERE clerk_user_id = ?').get(auth.userId);
+    if (!user || user.role !== role) {
+      return res.status(403).send('Acesso negado para este perfil.');
+    }
+    return next();
+  };
+}
+
+// Protege fluxo de aluno/professor com Clerk + role.
+app.get('/aluno.html', requireClerkAuthPage, requirePlatformRolePage('aluno'));
+app.get('/professor.html', requireClerkAuthPage, requirePlatformRolePage('professor'));
+app.get('/platform-admin.html', requireClerkAuthPage);
 
 // ── Protege acesso direto a /admin/*.html (exceto index.html) ─
 app.use('/admin', (req, res, next) => {
@@ -466,4 +527,3 @@ wss.on('connection', (ws) => {
     }
   });
 });
-

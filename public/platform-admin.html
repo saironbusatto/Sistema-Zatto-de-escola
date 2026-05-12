@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Plataforma · Hierarquia</title>
+  <style>
+    body{margin:0;background:#0f141c;color:#e8edf4;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .wrap{max-width:980px;margin:0 auto;padding:20px}
+    h1{font-size:24px;margin:0 0 14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .card{background:#151d29;border:1px solid #2a3546;border-radius:12px;padding:14px}
+    .card h2{font-size:15px;margin:0 0 10px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    input{flex:1;min-width:220px;background:#0f141c;color:#e8edf4;border:1px solid #324359;border-radius:8px;padding:10px}
+    button{background:#5aa4ff;color:#0f141c;border:0;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer}
+    button.sec{background:#2a3546;color:#e8edf4}
+    pre{white-space:pre-wrap;word-break:break-word;background:#0f141c;border:1px solid #2a3546;border-radius:8px;padding:10px;min-height:100px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+    .muted{color:#9fb0c7;font-size:13px}
+    @media (max-width:860px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Admin Hierarquia</h1>
+        <div class="muted">Root convida professor · Professor convida aluno</div>
+      </div>
+      <a href="/" style="color:#9fb0c7;text-decoration:none">← Voltar</a>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1) Minha sessão / bootstrap</h2>
+        <div class="row">
+          <button onclick="me()">Atualizar /me</button>
+          <button class="sec" onclick="bootstrapRoot()">Bootstrap root</button>
+        </div>
+        <pre id="me_out"></pre>
+      </section>
+
+      <section class="card">
+        <h2>2) Convidar professor (root)</h2>
+        <div class="row">
+          <input id="prof_email" placeholder="email do professor">
+          <button onclick="inviteProfessor()">Convidar</button>
+        </div>
+        <pre id="prof_out"></pre>
+      </section>
+
+      <section class="card">
+        <h2>3) Convidar aluno (professor)</h2>
+        <div class="row">
+          <input id="aluno_email" placeholder="email do aluno">
+          <button onclick="inviteAluno()">Convidar</button>
+        </div>
+        <pre id="aluno_out"></pre>
+      </section>
+
+      <section class="card">
+        <h2>4) Aceitar convite (token)</h2>
+        <div class="row">
+          <input id="invite_token" placeholder="token recebido no convite">
+          <button onclick="acceptInvite()">Aceitar</button>
+        </div>
+        <pre id="accept_out"></pre>
+      </section>
+
+      <section class="card">
+        <h2>5) Listar professores (root)</h2>
+        <div class="row">
+          <button onclick="listProfessores()">Listar</button>
+        </div>
+        <pre id="list_prof_out"></pre>
+      </section>
+
+      <section class="card">
+        <h2>6) Listar meus alunos (professor)</h2>
+        <div class="row">
+          <button onclick="listAlunos()">Listar</button>
+        </div>
+        <pre id="list_aluno_out"></pre>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    async function call(url, method='GET', body=null) {
+      const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : null
+      });
+      let data = null;
+      try { data = await r.json(); } catch {}
+      return { ok: r.ok, status: r.status, data };
+    }
+    function out(id, v) {
+      document.getElementById(id).textContent = JSON.stringify(v, null, 2);
+    }
+    async function me() { out('me_out', await call('/api/platform/me')); }
+    async function bootstrapRoot() { out('me_out', await call('/api/platform/bootstrap-root', 'POST')); }
+    async function inviteProfessor() {
+      const email = document.getElementById('prof_email').value.trim();
+      out('prof_out', await call('/api/platform/invite/professor', 'POST', { email }));
+    }
+    async function inviteAluno() {
+      const email = document.getElementById('aluno_email').value.trim();
+      out('aluno_out', await call('/api/platform/invite/aluno', 'POST', { email }));
+    }
+    async function acceptInvite() {
+      const token = document.getElementById('invite_token').value.trim();
+      out('accept_out', await call('/api/platform/invite/accept', 'POST', { token }));
+    }
+    async function listProfessores() { out('list_prof_out', await call('/api/platform/professores')); }
+    async function listAlunos() { out('list_aluno_out', await call('/api/platform/alunos')); }
+    me();
+  </script>
+</body>
+</html>
+

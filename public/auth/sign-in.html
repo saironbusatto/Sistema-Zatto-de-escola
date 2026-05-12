@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login · Plataforma</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;background:#0d1117;color:#e6edf3;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:100%;max-width:420px;background:#161b22;border:1px solid #30363d;border-radius:14px;padding:18px}
+  .head{padding:8px 6px 14px}.title{font-size:18px;font-weight:700}.sub{font-size:13px;color:#9da5b1}
+  #auth{min-height:400px}
+  .err{display:none;padding:10px 12px;border:1px solid #f85149;background:rgba(248,81,73,.12);border-radius:10px;color:#ffb4b4;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <div class="title">Entrar na plataforma</div>
+      <div class="sub">Acesso de alunos e professor</div>
+    </div>
+    <div id="err" class="err"></div>
+    <div id="auth"></div>
+  </div>
+</div>
+
+<script>
+  function showError(msg) {
+    const el = document.getElementById('err');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function init() {
+    const res = await fetch('/api/clerk/config');
+    const cfg = await res.json();
+    if (!cfg.enabled) return showError('Clerk não está habilitado no servidor.');
+    if (!cfg.publishableKey || !cfg.frontendApiUrl) {
+      return showError('Configure CLERK_PUBLISHABLE_KEY e CLERK_FRONTEND_API_URL no servidor.');
+    }
+
+    const ui = document.createElement('script');
+    ui.defer = true;
+    ui.crossOrigin = 'anonymous';
+    ui.src = `https://${cfg.frontendApiUrl}/npm/@clerk/ui@1/dist/ui.browser.js`;
+    document.head.appendChild(ui);
+
+    const sdk = document.createElement('script');
+    sdk.defer = true;
+    sdk.crossOrigin = 'anonymous';
+    sdk.dataset.clerkPublishableKey = cfg.publishableKey;
+    sdk.src = `https://${cfg.frontendApiUrl}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+    sdk.onload = async () => {
+      try {
+        await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+        const p = new URLSearchParams(location.search);
+        const redirectUrl = p.get('redirect_url') || '/';
+        window.Clerk.mountSignIn(document.getElementById('auth'), { afterSignInUrl: redirectUrl });
+      } catch (e) {
+        showError('Falha ao carregar autenticação.');
+      }
+    };
+    sdk.onerror = () => showError('Falha ao carregar scripts do Clerk.');
+    document.head.appendChild(sdk);
+  }
+
+  init().catch(() => showError('Erro ao inicializar login.'));
+</script>
+</body>
+</html>
+

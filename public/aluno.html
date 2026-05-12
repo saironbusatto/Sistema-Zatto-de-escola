@@ -21,7 +21,7 @@ body{
 .topbar-meta{display:flex;align-items:center;gap:14px;font-size:12px;opacity:.7;}
 .prog-outer{background:rgba(255,255,255,.15);height:3px;border-radius:2px;overflow:hidden;width:80px;}
 .prog-inner{height:100%;background:#fff;border-radius:2px;transition:width .5s;}
-.hero{background:var(--text);color:#f7f5f0;min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;}
+.hero{background:var(--text);color:#f7f5f0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:space-between;}
 .hero-inner{max-width:760px;margin:0 auto;padding:56px 24px 0;width:100%;}
 .hero-eye{font-size:11px;letter-spacing:.14em;opacity:.45;text-transform:uppercase;margin-bottom:10px;}
 .hero h1{font-family:'Fraunces',serif;font-size:42px;font-weight:600;line-height:1.1;margin-bottom:14px;max-width:560px;}
@@ -44,15 +44,38 @@ body{
 .pulse-dot{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:pulse 1.5s ease infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
 .page-center{max-width:760px;margin:0 auto;}
-.blocos{padding:0;}
-.bloco{border-bottom:2px solid var(--bg3);overflow:hidden;box-shadow:0 8px 24px rgba(21,18,14,.04);}
+.blocos{padding:0;scroll-snap-type:y mandatory;}
+.bloco{
+  border-bottom:2px solid var(--bg3);
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(21,18,14,.04);
+  min-height:calc(100vh - 46px);
+  min-height:calc(100dvh - 46px);
+  display:flex;
+  flex-direction:column;
+  scroll-snap-align:start;
+}
 .bloco.entrando{animation:slideIn .5s ease forwards;}
 @keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.bloco-visual{background:var(--bg2);padding:40px 24px 32px;display:flex;justify-content:center;border-bottom:1px solid var(--border);}
-.bloco-visual svg{max-width:640px;width:100%;}
-.bloco-visual-wrap{position:relative;max-width:640px;width:100%;}
+.bloco-visual{
+  background:var(--bg2);
+  padding:40px 24px 32px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  flex:1 1 auto;
+}
+.bloco-visual svg{display:block;max-width:100%;width:100%;height:auto;margin:0 auto;}
+.bloco-visual-wrap{
+  position:relative;
+  width:min(920px,100%);
+  margin:0 auto;
+}
 .bloco-draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
-.bloco-conteudo{padding:32px 24px 36px;}
+.bloco-conteudo{padding:32px 24px 36px;width:min(920px,100%);margin:0 auto;}
+.bloco.somente-visual .bloco-visual{padding:22px 24px 18px;}
+.bloco.somente-visual .bloco-visual-wrap{width:min(1100px,94vw);}
 /* ── Notificação de avanço ── */
 #avanco-notif{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.88);background:rgba(28,26,22,0.97);color:#f7f5f0;border-radius:20px;padding:28px 44px;text-align:center;z-index:450;pointer-events:none;opacity:0;border:1px solid rgba(255,255,255,0.10);box-shadow:0 24px 60px rgba(0,0,0,0.55);backdrop-filter:blur(10px);transition:opacity .35s cubic-bezier(.22,1,.36,1),transform .35s cubic-bezier(.22,1,.36,1);min-width:240px;}
 #avanco-notif.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
@@ -125,7 +148,7 @@ body{
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
 /* ── Lobby overlay ── */
-#lobby{position:fixed;inset:0;background:#0d1117;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity .5s ease;}
+#lobby{position:fixed;inset:0;background:#0d1117;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));transition:opacity .5s ease;}
 #lobby.saindo{opacity:0;pointer-events:none;}
 .lobby-card{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:48px 40px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:28px;}
 .lobby-brand{text-align:center;}
@@ -150,7 +173,7 @@ body{
 .lobby-back:hover{color:#e6edf3;}
 
 /* ── Modal foto de perfil ── */
-#modal-foto{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);}
+#modal-foto{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:none;align-items:center;justify-content:center;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(4px);}
 #modal-foto.open{display:flex;}
 .foto-card{background:#1c1a16;border:1px solid #3a3830;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px;}
 .foto-card h3{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:#f7f5f0;text-align:center;}
@@ -169,7 +192,7 @@ body{
 #foto-video{width:200px;height:150px;border-radius:8px;object-fit:cover;background:#000;}
 
 /* ── Câmera do professor (bolha flutuante) ── */
-#prof-cam-bubble{position:fixed;bottom:24px;right:24px;z-index:410;display:none;flex-direction:column;align-items:center;gap:6px;}
+#prof-cam-bubble{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:16px;z-index:410;display:none;flex-direction:column;align-items:center;gap:6px;}
 #prof-cam-circle{width:88px;height:88px;border-radius:50%;overflow:hidden;border:2.5px solid #e03131;box-shadow:0 0 0 4px rgba(224,49,49,.12),0 8px 28px rgba(0,0,0,.25);position:relative;background:#1c1a16;cursor:pointer;}
 #prof-cam-video{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
 .prof-cam-badge{background:#e03131;color:#fff;font-size:8px;font-weight:700;letter-spacing:.12em;padding:2px 7px;border-radius:10px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;white-space:nowrap;}
@@ -211,7 +234,7 @@ body{
 }
 
 /* ── Quiz overlay ── */
-#quiz-overlay{position:fixed;inset:0;background:#0d1117;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:20px;animation:quizFadeIn .25s ease;}
+#quiz-overlay{position:fixed;inset:0;background:#0d1117;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px));gap:20px;animation:quizFadeIn .25s ease;}
 @keyframes quizFadeIn{from{opacity:0;}to{opacity:1;}}
 .quiz-timer-wrap{position:absolute;top:0;left:0;right:0;height:6px;background:rgba(255,255,255,.1);}
 .quiz-timer-bar{height:100%;background:linear-gradient(90deg,#58a6ff,#a371f7);width:100%;transform-origin:left;transition:none;}
@@ -286,7 +309,7 @@ svg text{fill:var(--text);}
 @media (max-width: 1024px){
   .topbar-inner,.hero-inner,.prof-inner,.hero-status,.page-center{max-width:920px;}
   .hero h1{font-size:36px;max-width:640px;}
-  .bloco-visual{padding:32px 20px 24px;}
+  .bloco-visual{padding:28px 18px 20px;}
   .bloco-conteudo{padding:28px 20px 30px;}
   .quadro4d{grid-template-columns:1fr 1fr;}
   .quiz-opcoes-grid{max-width:640px;}
@@ -329,7 +352,13 @@ svg text{fill:var(--text);}
   .prof-linkedin{padding:8px 12px;font-size:12px;}
   .hero-status{padding:12px 14px 20px;font-size:11px;}
 
-  .bloco-visual{padding:16px 10px 14px;}
+  .bloco-visual{padding:12px 8px 10px;}
+  .bloco{
+    min-height:calc(100vh - 58px);
+    min-height:calc(100dvh - 58px);
+    scroll-snap-stop:always;
+  }
+  .blocos{scroll-snap-type:y proximity;}
   .bloco-conteudo{padding:24px 14px 26px;}
   .bloco-conteudo h2{font-size:22px;}
   .bloco-conteudo p{font-size:15px;line-height:1.68;}
@@ -377,6 +406,9 @@ svg text{fill:var(--text);}
   .bolha-texto{font-size:12px;line-height:1.42;}
 
   #quiz-overlay{padding:18px 12px 24px;gap:14px;}
+  #prof-cam-bubble{right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+  #prof-cam-circle{width:72px;height:72px;}
+  .prof-cam-badge{font-size:7px;padding:2px 6px;}
   .quiz-pergunta-txt{font-size:24px;line-height:1.3;}
   .quiz-opcoes-grid{grid-template-columns:1fr;gap:10px;max-width:100%;}
   .quiz-btn-opcao{padding:15px 12px;border-radius:14px;gap:6px;}
@@ -1212,6 +1244,7 @@ function renderBloco(num) {
   const c = CONTEUDOS[num];
   const svgStr = SVGs[num] || '';
   const jaRespondeu = respostasEnviadas.has(num);
+  const somenteVisual = num === 1;
 
   const pergHTML = c.temPergunta ? `
     <div class="pergunta-aluno" id="perg-aluno-${num}" style="display:none;">
@@ -1228,17 +1261,19 @@ function renderBloco(num) {
   ` : '';
 
   return `
-    <div class="bloco entrando" id="b${num}" data-num="${num}">
+    <div class="bloco entrando ${somenteVisual ? 'somente-visual' : ''}" id="b${num}" data-num="${num}">
       <div class="bloco-visual">
         <div class="bloco-visual-wrap">
           ${svgStr}
           <canvas class="bloco-draw-canvas" id="draw-canvas-${num}"></canvas>
         </div>
       </div>
+      ${somenteVisual ? '' : `
       <div class="bloco-conteudo">
         <h2>${c.titulo}</h2>
         ${c.corpo}
       </div>
+      `}
       ${pergHTML}
     </div>
   `;
