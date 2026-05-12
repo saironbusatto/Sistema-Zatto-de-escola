@@ -1080,7 +1080,7 @@ function liberarProximo() {
 
 function resetarAula() {
   if (!confirm('Reiniciar aula do zero?')) return;
-  blocoAtual = 0;
+  blocoAtual = -1;
   respostasLocais = [];
   renderRespostasList();
   wsSend({ type: 'reset_aula' });
@@ -1181,6 +1181,15 @@ function initCanvas(id) {
     ctx.moveTo(state.lastX, state.lastY);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
+    wsSend({
+      type: 'draw_stroke',
+      blocoId: id,
+      x0: state.lastX / canvas.width,
+      y0: state.lastY / canvas.height,
+      x1: p.x / canvas.width,
+      y1: p.y / canvas.height,
+      color: state.color,
+    });
     state.lastX = p.x; state.lastY = p.y;
   }
   function stopDraw() { state.drawing = false; }
@@ -1204,6 +1213,7 @@ function clearCanvas(id) {
   const canvas = document.getElementById(`canvas-${id}`);
   if (!canvas) return;
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  wsSend({ type: 'draw_clear', blocoId: id });
 }
 
 function initAllCanvases() {

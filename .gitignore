@@ -4,3 +4,5 @@ node_modules/
 db/plataforma.db
 db/plataforma.db-wal
 db/plataforma.db-shm
+*.pem
+CREDENCIAIS.md

@@ -50,6 +50,8 @@ body{
 @keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .bloco-visual{background:var(--bg2);padding:40px 24px 32px;display:flex;justify-content:center;border-bottom:1px solid var(--border);}
 .bloco-visual svg{max-width:640px;width:100%;}
+.bloco-visual-wrap{position:relative;max-width:640px;width:100%;}
+.bloco-draw-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
 .bloco-conteudo{padding:32px 24px 36px;}
 /* ── Notificação de avanço ── */
 #avanco-notif{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.88);background:rgba(28,26,22,0.97);color:#f7f5f0;border-radius:20px;padding:28px 44px;text-align:center;z-index:450;pointer-events:none;opacity:0;border:1px solid rgba(255,255,255,0.10);box-shadow:0 24px 60px rgba(0,0,0,0.55);backdrop-filter:blur(10px);transition:opacity .35s cubic-bezier(.22,1,.36,1),transform .35s cubic-bezier(.22,1,.36,1);min-width:240px;}
@@ -547,6 +549,7 @@ svg text{fill:var(--text);}
 <script>
 let nomeAluno = '';
 let blocoAtualRender = -1;   // -1 = ainda não recebeu nenhum state_update
+let primeiroStateRecebido = false;
 let respostasEnviadas = new Set();
 let ws, wsReady = false;
 let avancoTimer = null;
@@ -887,7 +890,40 @@ function conectarWS() {
     if (msg.type === 'quiz_encerrado') fecharQuiz();
     if (msg.type === 'exercicio_iniciado') mostrarExercicio(msg);
     if (msg.type === 'exercicio_encerrado') fecharExercicio();
+    if (msg.type === 'draw_stroke') handleDrawStroke(msg);
+    if (msg.type === 'draw_clear') handleDrawClear(msg);
   };
+}
+
+function getDrawCanvas(blocoId) {
+  const canvas = document.getElementById(`draw-canvas-${blocoId}`);
+  if (!canvas) return null;
+  const wrap = canvas.parentElement;
+  if (canvas.width !== wrap.offsetWidth || canvas.height !== wrap.offsetHeight) {
+    canvas.width = wrap.offsetWidth;
+    canvas.height = wrap.offsetHeight;
+  }
+  return canvas;
+}
+
+function handleDrawStroke(msg) {
+  const canvas = getDrawCanvas(msg.blocoId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.strokeStyle = msg.color;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.moveTo(msg.x0 * canvas.width, msg.y0 * canvas.height);
+  ctx.lineTo(msg.x1 * canvas.width, msg.y1 * canvas.height);
+  ctx.stroke();
+}
+
+function handleDrawClear(msg) {
+  const canvas = getDrawCanvas(msg.blocoId);
+  if (!canvas) return;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function wsSend(data) {
@@ -904,6 +940,8 @@ function handleStateUpdate(msg) {
 
   // Renderizar blocos liberados (só quando liberado >= 0)
   if (liberado >= 0) {
+    const aguardando = document.getElementById('aguardando');
+    if (aguardando) aguardando.style.display = 'none';
     for (let i = 1; i <= liberado + 1 && i <= TOTAL_BLOCOS; i++) {
       if (!document.getElementById(`b${i}`)) {
         document.getElementById('blocos').insertAdjacentHTML('beforeend', renderBloco(i));
@@ -916,9 +954,21 @@ function handleStateUpdate(msg) {
   document.getElementById('pct-label').textContent = pct + '%';
   document.getElementById('bloco-label').textContent = liberado < 0 ? 'Aguardando início' : `Bloco ${liberado + 1} de 7`;
 
-  // Detecta avanço: professor liberou um bloco novo (não conta o primeiro carregamento)
-  if (anterior >= 0 && liberado > anterior) {
-    const numNovoBloco = liberado + 1; // o bloco recém-revelado
+  // Detecta avanço: professor liberou um bloco novo (não conta o carregamento inicial)
+  const eAvanco = primeiroStateRecebido && liberado > anterior;
+  primeiroStateRecebido = true;
+
+  if (eAvanco) {
+    const numNovoBloco = liberado + 1;
+    // Scrolla imediatamente para a dobra do novo bloco
+    setTimeout(() => {
+      const el = document.getElementById(`b${numNovoBloco}`);
+      if (el) {
+        const topbar = document.querySelector('.topbar');
+        const offset = topbar ? topbar.offsetHeight : 0;
+        window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' });
+      }
+    }, 80);
     mostrarAvanco(numNovoBloco);
   }
 
@@ -948,11 +998,6 @@ function mostrarAvanco(numBloco) {
 
   avancoTimer = setTimeout(() => {
     notif.classList.remove('show');
-    // Scrolla para o novo bloco depois da notif começar a sair
-    setTimeout(() => {
-      const el = document.getElementById(`b${numBloco}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 250);
   }, 2200);
 }
 
@@ -993,7 +1038,12 @@ function renderBloco(num) {
 
   return `
     <div class="bloco entrando" id="b${num}" data-num="${num}">
-      <div class="bloco-visual">${svgStr}</div>
+      <div class="bloco-visual">
+        <div class="bloco-visual-wrap">
+          ${svgStr}
+          <canvas class="bloco-draw-canvas" id="draw-canvas-${num}"></canvas>
+        </div>
+      </div>
       <div class="bloco-conteudo">
         <h2>${c.titulo}</h2>
         ${c.corpo}

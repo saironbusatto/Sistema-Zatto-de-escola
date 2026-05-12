@@ -165,11 +165,19 @@ wss.on('connection', (ws) => {
   ws._msgCount = 0;
   ws._msgReset = setInterval(() => { ws._msgCount = 0; }, 1000);
 
+  ws._drawCount = 0;
+  ws._drawReset = setInterval(() => { ws._drawCount = 0; }, 1000);
+
   ws.on('message', (raw) => {
-    if (++ws._msgCount > 20) return; // silently drop
-    if (raw.length > 8192) return;   // rejeita payloads > 8KB
+    if (raw.length > 8192) return;
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
+    // draw_stroke tem volume alto — limite próprio (200/s)
+    if (msg.type === 'draw_stroke') {
+      if (++ws._drawCount > 200) return;
+    } else {
+      if (++ws._msgCount > 20) return;
+    }
 
     switch (msg.type) {
       case 'professor_connect': {
@@ -243,10 +251,28 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      case 'draw_stroke': {
+        if (!professores.has(ws)) break;
+        const strokeMsg = JSON.stringify({ type: 'draw_stroke', blocoId: msg.blocoId, x0: msg.x0, y0: msg.y0, x1: msg.x1, y1: msg.y1, color: msg.color });
+        for (const [alunoWs] of alunos) {
+          if (alunoWs.readyState === 1) alunoWs.send(strokeMsg);
+        }
+        break;
+      }
+
+      case 'draw_clear': {
+        if (!professores.has(ws)) break;
+        const clearMsg = JSON.stringify({ type: 'draw_clear', blocoId: msg.blocoId });
+        for (const [alunoWs] of alunos) {
+          if (alunoWs.readyState === 1) alunoWs.send(clearMsg);
+        }
+        break;
+      }
+
       case 'reset_aula': {
         if (!professores.has(ws)) break;
         aulaState = {
-          blocoLiberado: 0,
+          blocoLiberado: -1,
           perguntaAtiva: null,
           respostas: [],
         };
