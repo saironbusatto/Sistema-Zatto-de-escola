@@ -149,6 +149,25 @@ body{
 .lobby-back{background:transparent;border:none;color:#7d8590;font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-align:center;}
 .lobby-back:hover{color:#e6edf3;}
 
+/* ── Modal foto de perfil ── */
+#modal-foto{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px);}
+#modal-foto.open{display:flex;}
+.foto-card{background:#1c1a16;border:1px solid #3a3830;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px;}
+.foto-card h3{font-family:'Fraunces',serif;font-size:18px;font-weight:500;color:#f7f5f0;text-align:center;}
+.foto-preview-wrap{width:120px;height:120px;border-radius:50%;overflow:hidden;background:#2d2b26;border:2px solid #4a4840;margin:0 auto;display:flex;align-items:center;justify-content:center;}
+#foto-preview{width:100%;height:100%;object-fit:cover;display:none;}
+.foto-placeholder{font-size:36px;color:#6b6860;}
+.foto-actions{display:flex;flex-direction:column;gap:8px;}
+.foto-btn{border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.foto-btn-cam{background:#2d5fa3;color:#fff;}
+.foto-btn-upload{background:#2d2b26;color:#c8c4ba;border:1px solid #3a3830 !important;}
+.foto-btn-enviar{background:#1a7a45;color:#fff;}
+.foto-btn-fechar{background:transparent;color:#6b6860;font-size:12px;padding:6px;}
+.foto-btn:hover{opacity:.85;}
+#foto-input{display:none;}
+#foto-cam-wrap{display:none;flex-direction:column;gap:8px;align-items:center;}
+#foto-video{width:200px;height:150px;border-radius:8px;object-fit:cover;background:#000;}
+
 /* ── Câmera do professor (bolha flutuante) ── */
 #prof-cam-bubble{position:fixed;bottom:24px;right:24px;z-index:410;display:none;flex-direction:column;align-items:center;gap:6px;}
 #prof-cam-circle{width:88px;height:88px;border-radius:50%;overflow:hidden;border:2.5px solid #e03131;box-shadow:0 0 0 4px rgba(224,49,49,.12),0 8px 28px rgba(0,0,0,.25);position:relative;background:#1c1a16;cursor:pointer;}
@@ -412,6 +431,7 @@ svg text{fill:var(--text);}
 <div class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">Módulo 0 · Aula 0.1</div>
+    <button id="btn-foto" onclick="abrirModalFoto()" title="Enviar foto de perfil" style="background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:20px;color:rgba(255,255,255,.6);font-size:11px;padding:3px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;">📸 Foto</button>
     <div class="topbar-meta">
       <span id="bloco-label">Aguardando início</span>
       <div class="prog-outer"><div class="prog-inner" id="prog" style="width:0%"></div></div>
@@ -517,6 +537,28 @@ svg text{fill:var(--text);}
 </div>
 
 <!-- Lobby de entrada -->
+<!-- Modal foto de perfil -->
+<div id="modal-foto">
+  <div class="foto-card">
+    <h3>Sua foto de perfil</h3>
+    <div class="foto-preview-wrap">
+      <img id="foto-preview" alt="Preview">
+      <span class="foto-placeholder" id="foto-placeholder">🙂</span>
+    </div>
+    <div id="foto-cam-wrap">
+      <video id="foto-video" autoplay muted playsinline></video>
+      <button class="foto-btn foto-btn-cam" onclick="_fotoCapturar()">📸 Tirar foto</button>
+    </div>
+    <div class="foto-actions">
+      <button class="foto-btn foto-btn-cam" onclick="_fotoAbrirCam()">📷 Usar câmera</button>
+      <button class="foto-btn foto-btn-upload" onclick="document.getElementById('foto-input').click()">🖼️ Escolher da galeria</button>
+      <input type="file" id="foto-input" accept="image/*" onchange="_fotoDoArquivo(event)">
+      <button class="foto-btn foto-btn-enviar" id="btn-enviar-foto" onclick="_fotoEnviar()" style="display:none">✓ Enviar para o professor</button>
+      <button class="foto-btn foto-btn-fechar" onclick="fecharModalFoto()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Câmera ao vivo do professor -->
 <div id="prof-cam-bubble">
   <div id="prof-cam-circle">
@@ -944,6 +986,81 @@ function handleDrawClear(msg) {
   const canvas = getDrawCanvas(msg.blocoId);
   if (!canvas) return;
   canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── Foto de perfil ───────────────────────────────────────────
+let _fotoStream = null;
+let _fotoPendente = null;
+const _fotoCanvas = document.createElement('canvas');
+_fotoCanvas.width = 200; _fotoCanvas.height = 200;
+
+function abrirModalFoto() {
+  document.getElementById('modal-foto').classList.add('open');
+}
+function fecharModalFoto() {
+  _fotoFecharCam();
+  document.getElementById('modal-foto').classList.remove('open');
+}
+
+async function _fotoAbrirCam() {
+  try {
+    _fotoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('foto-video');
+    video.srcObject = _fotoStream;
+    document.getElementById('foto-cam-wrap').style.display = 'flex';
+  } catch(e) { alert('Câmera não disponível.'); }
+}
+
+function _fotoFecharCam() {
+  if (_fotoStream) { _fotoStream.getTracks().forEach(t => t.stop()); _fotoStream = null; }
+  document.getElementById('foto-cam-wrap').style.display = 'none';
+}
+
+function _fotoCapturar() {
+  const video = document.getElementById('foto-video');
+  const ctx = _fotoCanvas.getContext('2d');
+  // Centralizar e cortar quadrado
+  const s = Math.min(video.videoWidth, video.videoHeight);
+  const ox = (video.videoWidth - s) / 2, oy = (video.videoHeight - s) / 2;
+  ctx.drawImage(video, ox, oy, s, s, 0, 0, 200, 200);
+  _fotoPendente = _fotoCanvas.toDataURL('image/jpeg', 0.75);
+  _fotoMostrarPreview(_fotoPendente);
+  _fotoFecharCam();
+}
+
+function _fotoDoArquivo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const ctx = _fotoCanvas.getContext('2d');
+      const s = Math.min(img.width, img.height);
+      const ox = (img.width - s) / 2, oy = (img.height - s) / 2;
+      ctx.drawImage(img, ox, oy, s, s, 0, 0, 200, 200);
+      _fotoPendente = _fotoCanvas.toDataURL('image/jpeg', 0.75);
+      _fotoMostrarPreview(_fotoPendente);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function _fotoMostrarPreview(src) {
+  const preview = document.getElementById('foto-preview');
+  preview.src = src;
+  preview.style.display = 'block';
+  document.getElementById('foto-placeholder').style.display = 'none';
+  document.getElementById('btn-enviar-foto').style.display = 'block';
+}
+
+function _fotoEnviar() {
+  if (!_fotoPendente) return;
+  wsSend({ type: 'student_photo', foto: _fotoPendente });
+  document.getElementById('btn-foto').textContent = '✓ Foto enviada';
+  document.getElementById('btn-foto').style.color = 'rgba(58,194,107,.8)';
+  fecharModalFoto();
 }
 
 // ── Câmera do professor (WebRTC) ────────────────────────────

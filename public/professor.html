@@ -238,6 +238,11 @@ body{
 .liberar-btn:hover{opacity:.85;}
 .liberar-btn:disabled{background:var(--bg3);color:var(--muted);cursor:default;}
 
+/* ── Turma ── */
+.turma-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);cursor:default;position:relative;flex-shrink:0;}
+.turma-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.turma-avatar[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#0d1117;color:var(--text);font-size:10px;white-space:nowrap;padding:3px 7px;border-radius:4px;border:1px solid var(--border);pointer-events:none;z-index:10;}
+
 /* ── Cam PiP ── */
 #cam-pip{position:fixed;bottom:20px;left:272px;z-index:400;display:none;flex-direction:column;align-items:center;gap:6px;}
 #cam-pip-inner{width:148px;height:111px;border-radius:10px;overflow:hidden;background:#000;border:2px solid var(--red);box-shadow:0 0 0 3px rgba(255,107,107,.12),0 8px 24px rgba(0,0,0,.5);position:relative;}
@@ -261,6 +266,10 @@ body{
   <div class="nav">
     <div class="nav-label">Blocos</div>
     <div id="nav-list"></div>
+  </div>
+  <div class="nav" style="border-top:1px solid var(--border);margin-top:auto;">
+    <div class="nav-label">Turma <span id="turma-count" style="font-size:9px;opacity:.5;font-weight:400;text-transform:none;letter-spacing:0;"></span></div>
+    <div id="turma-grid" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 16px 16px;"></div>
   </div>
 </nav>
 
@@ -712,6 +721,8 @@ function conectarWS() {
     if (msg.type === 'cam_subscribe') _camOnSubscribe(msg);
     if (msg.type === 'cam_answer') _camOnAnswer(msg);
     if (msg.type === 'cam_ice' && msg.from !== undefined) _camOnIceFromStudent(msg);
+    if (msg.type === 'student_photo') _turmaAtualizarFoto(msg.nome, msg.foto);
+    if (msg.type === 'student_photos_batch') msg.fotos.forEach(f => _turmaAtualizarFoto(f.nome, f.foto));
   };
 }
 function setWsStatus(s, t) {
@@ -1241,6 +1252,33 @@ carregarConteudo().then(() => {
   renderBlocos();
   setTimeout(initAllCanvases, 150);
 });
+// ── Turma (fotos dos alunos) ──────────────────────────────────
+const _turmaFotos = new Map(); // nome → foto
+
+function _turmaAtualizarFoto(nome, foto) {
+  _turmaFotos.set(nome, foto);
+  _turmaRenderizar();
+}
+
+function _turmaRenderizar() {
+  const grid = document.getElementById('turma-grid');
+  const count = document.getElementById('turma-count');
+  grid.innerHTML = '';
+  count.textContent = _turmaFotos.size ? `(${_turmaFotos.size})` : '';
+  for (const [nome, foto] of _turmaFotos) {
+    const initials = nome.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const div = document.createElement('div');
+    div.className = 'turma-avatar';
+    div.title = nome;
+    if (foto) {
+      div.innerHTML = `<img src="${foto}" alt="${initials}">`;
+    } else {
+      div.textContent = initials;
+    }
+    grid.appendChild(div);
+  }
+}
+
 carregarCodigo();
 conectarWS();
 

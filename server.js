@@ -123,7 +123,7 @@ let _nextClientId = 1;
 
 // Clientes separados por tipo
 const professores = new Set();
-const alunos = new Map(); // ws → nome
+const alunos = new Map(); // ws → { nome, foto }
 
 function alunosOnlineCount() {
   return alunos.size;
@@ -145,7 +145,8 @@ function sendState(ws) {
     perguntaAtiva: aulaState.perguntaAtiva,
     respostas: aulaState.respostas,
     alunosOnline: alunosOnlineCount(),
-    nomeAlunos: [...alunos.values()],
+    nomeAlunos: [...alunos.values()].map(a => a.nome),
+    alunosFotos: [...alunos.values()].map(a => ({ nome: a.nome, foto: a.foto || null })),
     camAtiva: aulaState.camAtiva,
   }));
 }
@@ -157,7 +158,7 @@ function broadcastState() {
     perguntaAtiva: aulaState.perguntaAtiva,
     respostas: aulaState.respostas,
     alunosOnline: alunosOnlineCount(),
-    nomeAlunos: [...alunos.values()],
+    nomeAlunos: [...alunos.values()].map(a => a.nome),
     camAtiva: aulaState.camAtiva,
   });
   for (const client of wss.clients) {
@@ -189,12 +190,15 @@ wss.on('connection', (ws) => {
       case 'professor_connect': {
         professores.add(ws);
         sendState(ws);
+        // Enviar fotos já existentes
+        const fotos = [...alunos.values()].filter(a => a.foto).map(a => ({ nome: a.nome, foto: a.foto }));
+        if (fotos.length) ws.send(JSON.stringify({ type: 'student_photos_batch', fotos }));
         break;
       }
 
       case 'aluno_connect': {
         const nome = (msg.nome || 'Aluno').trim().slice(0, 40);
-        alunos.set(ws, nome);
+        alunos.set(ws, { nome, foto: null });
         sendState(ws);
         broadcastState();
         break;
@@ -228,7 +232,7 @@ wss.on('connection', (ws) => {
       }
 
       case 'resposta_pergunta': {
-        const nomeAluno = alunos.get(ws) || 'Aluno';
+        const nomeAluno = (alunos.get(ws) || {}).nome || 'Aluno';
         const textoResp = (msg.texto || '').trim().slice(0, 500);
         if (!textoResp) break;
         const resp = { nome: nomeAluno, texto: textoResp, ts: Date.now() };
@@ -271,6 +275,19 @@ wss.on('connection', (ws) => {
         const camStopMsg = JSON.stringify({ type: 'cam_stop' });
         for (const [alunoWs] of alunos) {
           if (alunoWs.readyState === 1) alunoWs.send(camStopMsg);
+        }
+        break;
+      }
+
+      case 'student_photo': {
+        if (!alunos.has(ws)) break;
+        const fotoData = (msg.foto || '').slice(0, 32768); // máx 32KB
+        if (!fotoData.startsWith('data:image/')) break;
+        alunos.get(ws).foto = fotoData;
+        const nome = alunos.get(ws).nome;
+        const photoMsg = JSON.stringify({ type: 'student_photo', nome, foto: fotoData });
+        for (const profWs of professores) {
+          if (profWs.readyState === 1) profWs.send(photoMsg);
         }
         break;
       }
@@ -369,7 +386,7 @@ wss.on('connection', (ws) => {
 
       case 'resposta_quiz': {
         if (!aulaState.quiz || aulaState.quiz.respostas.has(ws)) break;
-        const nomeAluno = alunos.get(ws) || 'Aluno';
+        const nomeAluno = (alunos.get(ws) || {}).nome || 'Aluno';
         const opcao = Number(msg.opcao);
         const tempo_ms = Number(msg.tempo_ms) || 0;
         if (opcao < 0 || opcao > 3 || isNaN(opcao)) break;
@@ -416,7 +433,7 @@ wss.on('connection', (ws) => {
 
       case 'resposta_exercicio': {
         if (!aulaState.exercicio) break;
-        const nomeAluno = alunos.get(ws) || 'Aluno';
+        const nomeAluno = (alunos.get(ws) || {}).nome || 'Aluno';
         // Serializa e limita payload a 4KB
         let dados = {};
         try { dados = JSON.parse(JSON.stringify(msg.dados || {}).slice(0, 4096)); } catch {}
