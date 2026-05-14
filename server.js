@@ -145,9 +145,42 @@ function requirePlatformRolePage(role) {
       return res.redirect(`/auth/sign-in.html?redirect_url=${redirectUrl}`);
     }
     const db = getDb();
-    const user = db.prepare('SELECT role FROM platform_users WHERE clerk_user_id = ?').get(auth.userId);
+    let user = db.prepare('SELECT * FROM platform_users WHERE clerk_user_id = ?').get(auth.userId);
+
+    // Auto-bootstrap: se o role pedido é root e o email está em PLATFORM_ROOT_EMAILS, promove automaticamente
+    if (role === 'root' && (!user || user.role !== 'root')) {
+      try {
+        const clerkUser = await clerkClient.users.getUser(auth.userId);
+        const email = (clerkUser?.emailAddresses?.[0]?.emailAddress || '').toLowerCase().trim();
+        const rootEmails = (process.env.PLATFORM_ROOT_EMAILS || '')
+          .split(',').map(e => e.toLowerCase().trim()).filter(Boolean);
+        if (email && rootEmails.includes(email)) {
+          if (!user) {
+            db.prepare('INSERT INTO platform_users (clerk_user_id, email, role) VALUES (?,?,?)')
+              .run(auth.userId, email, 'root');
+          } else {
+            db.prepare("UPDATE platform_users SET role='root', email=?, updated_at=datetime('now') WHERE id=?")
+              .run(email, user.id);
+          }
+          user = db.prepare('SELECT * FROM platform_users WHERE clerk_user_id = ?').get(auth.userId);
+        }
+      } catch {}
+    }
+
     if (!user || user.role !== role) {
-      return res.status(403).send('Acesso negado para este perfil.');
+      const roleLabel = { root: 'administrador', professor: 'professor', aluno: 'aluno' }[role] || role;
+      return res.status(403).send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Acesso restrito</title>
+        <style>body{margin:0;background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100dvh}
+        .box{text-align:center;max-width:400px;padding:32px}.icon{font-size:48px}.title{font-size:20px;font-weight:700;margin:16px 0 8px}
+        .sub{color:#9da5b1;font-size:14px;line-height:1.6}.back{display:inline-block;margin-top:24px;color:#5aa4ff;text-decoration:none;font-size:14px}</style>
+      </head><body><div class="box">
+        <div class="icon">🔒</div>
+        <div class="title">Acesso restrito</div>
+        <div class="sub">Esta página é para <strong>${roleLabel}</strong>.<br>Se você recebeu um convite, acesse o link enviado por email.</div>
+        <a class="back" href="/">← Voltar ao início</a>
+      </div></body></html>`);
     }
     return next();
   };
@@ -156,7 +189,7 @@ function requirePlatformRolePage(role) {
 // Protege fluxo de aluno/professor com Clerk + role.
 app.get('/aluno.html', requireClerkAuthPage, requirePlatformRolePage('aluno'));
 app.get('/professor.html', requireClerkAuthPage, requirePlatformRolePage('professor'));
-app.get('/platform-admin.html', requireClerkAuthPage);
+app.get('/platform-admin.html', requireClerkAuthPage, requirePlatformRolePage('root'));
 
 // ── Protege acesso direto a /admin/*.html (exceto index.html) ─
 app.use('/admin', (req, res, next) => {

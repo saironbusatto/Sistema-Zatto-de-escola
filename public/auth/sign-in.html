@@ -55,8 +55,11 @@
       try {
         await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
         const p = new URLSearchParams(location.search);
-        const redirectUrl = p.get('redirect_url') || '/';
-        window.Clerk.mountSignIn(document.getElementById('auth'), { afterSignInUrl: redirectUrl });
+        const dest = p.get('redirect_url');
+        const afterUrl = dest
+          ? `/auth/redirect.html?redirect_url=${encodeURIComponent(dest)}`
+          : '/auth/redirect.html';
+        window.Clerk.mountSignIn(document.getElementById('auth'), { afterSignInUrl: afterUrl });
       } catch (e) {
         showError('Falha ao carregar autenticação.');
       }

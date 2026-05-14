@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Redirecionando…</title>
+<style>
+  body{margin:0;background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100dvh}
+  .box{text-align:center}.title{font-size:16px;color:#9da5b1;margin-top:16px}
+  .spin{width:36px;height:36px;border:3px solid #2a3546;border-top-color:#5aa4ff;border-radius:50%;animation:s .7s linear infinite;margin:0 auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="spin"></div>
+  <div class="title">Verificando acesso…</div>
+</div>
+<script>
+  async function route() {
+    try {
+      const r = await fetch('/api/platform/me');
+      if (!r.ok) { location.href = '/auth/sign-in.html'; return; }
+      const user = await r.json();
+      const dest = new URLSearchParams(location.search).get('redirect_url');
+      if (dest && !dest.startsWith('http')) { location.href = dest; return; }
+      const map = { root: '/platform-admin.html', professor: '/professor.html', aluno: '/aluno.html' };
+      location.href = map[user.role] || '/';
+    } catch {
+      location.href = '/';
+    }
+  }
+  route();
+</script>
+</body>
+</html>
