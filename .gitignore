@@ -1,8 +1,10 @@
 node_modules/
 .env
+*.env.*
 *.log
 db/plataforma.db
 db/plataforma.db-wal
 db/plataforma.db-shm
 *.pem
 CREDENCIAIS.md
+.room_code

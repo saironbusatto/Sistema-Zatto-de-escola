@@ -92,11 +92,18 @@ router.get('/me', requireAdminApi, (req, res) => {
 
 // ── Utilitários ──────────────────────────────────────────────────────────
 
-// Sanitiza HTML removendo scripts e event handlers inline (alunos renderizam o conteúdo)
+// Sanitiza HTML removendo tags e atributos perigosos (alunos renderizam o conteúdo)
 function sanitizeHtml(str) {
   return String(str)
     .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-    .replace(/\s+on\w+=["'][^"']*["']/gi, '');
+    .replace(/<iframe\b[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object\b[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*>/gi, '')
+    .replace(/<meta\b[^>]*>/gi, '')
+    .replace(/\s+on\w+=(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+    .replace(/\bjavascript\s*:/gi, 'removed:')
+    .replace(/\bdata\s*:\s*text\/html/gi, 'removed:');
 }
 
 function str(v, max) { return String(v || '').trim().slice(0, max); }
@@ -281,15 +288,16 @@ router.post('/blocos/:blocoId/quizzes', requireAdminApi, (req, res) => {
 
 router.put('/quizzes/:id', requireAdminApi, (req, res) => {
   const db = getDb();
-  const quiz = db.prepare('SELECT id FROM quizzes WHERE id = ?').get(Number(req.params.id));
+  const quiz = db.prepare('SELECT * FROM quizzes WHERE id = ?').get(Number(req.params.id));
   if (!quiz) return res.status(404).json({ erro: 'Quiz não encontrado' });
   const { pergunta, opcao_a, opcao_b, opcao_c, opcao_d, correta, tempo_seg, ordem } = req.body || {};
   if (correta !== undefined && ![0,1,2,3].includes(Number(correta)))
     return res.status(400).json({ erro: 'correta deve ser 0, 1, 2 ou 3' });
+  const corretaFinal = correta !== undefined ? Number(correta) : quiz.correta;
   tryRun(res, () => {
     db.prepare('UPDATE quizzes SET pergunta=?, opcao_a=?, opcao_b=?, opcao_c=?, opcao_d=?, correta=?, tempo_seg=?, ordem=? WHERE id=?')
       .run(str(pergunta, 500), str(opcao_a, 200), str(opcao_b, 200), str(opcao_c, 200), str(opcao_d, 200),
-          Number(correta ?? 0), num(tempo_seg, 20, 5, 120), num(ordem, 0, 0, 9999), quiz.id);
+          corretaFinal, num(tempo_seg, 20, 5, 120), num(ordem, 0, 0, 9999), quiz.id);
     res.json(db.prepare('SELECT * FROM quizzes WHERE id = ?').get(quiz.id));
   });
 });

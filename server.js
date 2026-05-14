@@ -6,7 +6,18 @@ const { WebSocketServer } = require('ws');
 const http     = require('http');
 const path     = require('path');
 const { clerkMiddleware, getAuth, clerkClient } = require('@clerk/express');
+const fs       = require('fs');
 const { getDb }        = require('./db/database.js');
+
+function persistirResposta(tipo, nomeAluno, blocoId, dados) {
+  try {
+    getDb().prepare(
+      'INSERT INTO aula_respostas (tipo, nome_aluno, bloco_id, dados) VALUES (?,?,?,?)'
+    ).run(tipo, nomeAluno, blocoId || null, JSON.stringify(dados));
+  } catch (e) {
+    console.error('[db] persistirResposta:', e.message);
+  }
+}
 const adminRouter      = require('./routes/admin.js');
 const contentRouter    = require('./routes/content.js');
 const platformRouter   = require('./routes/platform.js');
@@ -156,10 +167,23 @@ app.use('/admin', (req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Código da sala ───────────────────────────────────────────
+const ROOM_CODE_FILE = path.join(__dirname, '.room_code');
+
 function gerarCodigo() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
-let roomCode = gerarCodigo();
+
+function loadOrCreateRoomCode() {
+  try {
+    const saved = fs.readFileSync(ROOM_CODE_FILE, 'utf8').trim();
+    if (/^[A-Z0-9]{6}$/.test(saved)) return saved;
+  } catch {}
+  const code = gerarCodigo();
+  fs.writeFileSync(ROOM_CODE_FILE, code, 'utf8');
+  return code;
+}
+
+let roomCode = loadOrCreateRoomCode();
 
 app.get('/api/join', (req, res) => {
   const code = (req.query.code || '').toUpperCase().trim();
@@ -199,8 +223,8 @@ function broadcast(data, exclude = null) {
   }
 }
 
-function sendState(ws) {
-  ws.send(JSON.stringify({
+function buildStateMsg() {
+  return {
     type: 'state_update',
     blocoLiberado: aulaState.blocoLiberado,
     perguntaAtiva: aulaState.perguntaAtiva,
@@ -209,19 +233,15 @@ function sendState(ws) {
     nomeAlunos: [...alunos.values()].map(a => a.nome),
     alunosFotos: [...alunos.values()].map(a => ({ nome: a.nome, foto: a.foto || null })),
     camAtiva: aulaState.camAtiva,
-  }));
+  };
+}
+
+function sendState(ws) {
+  ws.send(JSON.stringify(buildStateMsg()));
 }
 
 function broadcastState() {
-  const msg = JSON.stringify({
-    type: 'state_update',
-    blocoLiberado: aulaState.blocoLiberado,
-    perguntaAtiva: aulaState.perguntaAtiva,
-    respostas: aulaState.respostas,
-    alunosOnline: alunosOnlineCount(),
-    nomeAlunos: [...alunos.values()].map(a => a.nome),
-    camAtiva: aulaState.camAtiva,
-  });
+  const msg = JSON.stringify(buildStateMsg());
   for (const client of wss.clients) {
     if (client.readyState === 1) client.send(msg);
   }
@@ -298,6 +318,7 @@ wss.on('connection', (ws) => {
         if (!textoResp) break;
         const resp = { nome: nomeAluno, texto: textoResp, ts: Date.now() };
         aulaState.respostas.push(resp);
+        persistirResposta('pergunta', nomeAluno, msg.blocoId, { texto: textoResp });
         // Notifica professores com a nova resposta (lista em tempo real)
         for (const prof of professores) {
           if (prof.readyState === 1) {
@@ -366,24 +387,31 @@ wss.on('connection', (ws) => {
       case 'cam_offer': {
         // Professor envia offer para aluno específico
         if (!professores.has(ws)) break;
+        const sdpOffer = String(msg.sdp || '').slice(0, 16384);
+        if (!sdpOffer) break;
         const targetOffer = [...wss.clients].find(c => c._id === msg.to);
         if (targetOffer?.readyState === 1)
-          targetOffer.send(JSON.stringify({ type: 'cam_offer', sdp: msg.sdp }));
+          targetOffer.send(JSON.stringify({ type: 'cam_offer', sdp: sdpOffer }));
         break;
       }
 
       case 'cam_answer': {
         // Aluno responde com answer → professor
         if (!alunos.has(ws)) break;
+        const sdpAnswer = String(msg.sdp || '').slice(0, 16384);
+        if (!sdpAnswer) break;
         for (const profWs of professores) {
           if (profWs.readyState === 1)
-            profWs.send(JSON.stringify({ type: 'cam_answer', from: ws._id, sdp: msg.sdp }));
+            profWs.send(JSON.stringify({ type: 'cam_answer', from: ws._id, sdp: sdpAnswer }));
         }
         break;
       }
 
       case 'cam_ice': {
         // ICE candidate — professor→aluno ou aluno→professor
+        if (!msg.candidate || typeof msg.candidate !== 'object') break;
+        const iceStr = JSON.stringify(msg.candidate);
+        if (iceStr.length > 2048) break;
         if (professores.has(ws)) {
           const targetIce = [...wss.clients].find(c => c._id === msg.to);
           if (targetIce?.readyState === 1)
@@ -399,7 +427,12 @@ wss.on('connection', (ws) => {
 
       case 'draw_stroke': {
         if (!professores.has(ws)) break;
-        const strokeMsg = JSON.stringify({ type: 'draw_stroke', blocoId: msg.blocoId, x0: msg.x0, y0: msg.y0, x1: msg.x1, y1: msg.y1, color: msg.color });
+        const x0 = Number(msg.x0), y0 = Number(msg.y0);
+        const x1 = Number(msg.x1), y1 = Number(msg.y1);
+        if (isNaN(x0) || isNaN(y0) || isNaN(x1) || isNaN(y1)) break;
+        const color = String(msg.color || '').trim();
+        if (!/^#[0-9a-fA-F]{6}$/.test(color)) break;
+        const strokeMsg = JSON.stringify({ type: 'draw_stroke', blocoId: Number(msg.blocoId), x0, y0, x1, y1, color });
         for (const [alunoWs] of alunos) {
           if (alunoWs.readyState === 1) alunoWs.send(strokeMsg);
         }
@@ -421,6 +454,9 @@ wss.on('connection', (ws) => {
           blocoLiberado: -1,
           perguntaAtiva: null,
           respostas: [],
+          quiz: null,
+          exercicio: null,
+          camAtiva: false,
         };
         broadcastState();
         break;
@@ -429,6 +465,7 @@ wss.on('connection', (ws) => {
       case 'regenerar_codigo': {
         if (!professores.has(ws)) break;
         roomCode = gerarCodigo();
+        fs.writeFileSync(ROOM_CODE_FILE, roomCode, 'utf8');
         ws.send(JSON.stringify({ type: 'novo_codigo', code: roomCode }));
         break;
       }
@@ -452,6 +489,7 @@ wss.on('connection', (ws) => {
         const tempo_ms = Number(msg.tempo_ms) || 0;
         if (opcao < 0 || opcao > 3 || isNaN(opcao)) break;
         aulaState.quiz.respostas.set(ws, { opcao, tempo_ms, nome: nomeAluno });
+        persistirResposta('quiz', nomeAluno, null, { opcao, tempo_ms, pergunta: aulaState.quiz.pergunta });
         const totalRespostas = aulaState.quiz.respostas.size;
         for (const prof of professores) {
           if (prof.readyState === 1)
@@ -495,11 +533,13 @@ wss.on('connection', (ws) => {
       case 'resposta_exercicio': {
         if (!aulaState.exercicio) break;
         const nomeAluno = (alunos.get(ws) || {}).nome || 'Aluno';
-        // Serializa e limita payload a 4KB
         let dados = {};
-        try { dados = JSON.parse(JSON.stringify(msg.dados || {}).slice(0, 4096)); } catch {}
+        if (msg.dados !== null && typeof msg.dados === 'object' && !Array.isArray(msg.dados)) {
+          if (JSON.stringify(msg.dados).length <= 4096) dados = msg.dados;
+        }
         const resp = { nome: nomeAluno, dados, ts: Date.now() };
         aulaState.exercicio.respostas.push(resp);
+        persistirResposta('exercicio', nomeAluno, null, { tipo: aulaState.exercicio.tipo, ...dados });
         for (const prof of professores) {
           if (prof.readyState === 1)
             prof.send(JSON.stringify({ type: 'exercicio_resposta', nome: nomeAluno, tipo: aulaState.exercicio.tipo, dados }));
@@ -519,6 +559,7 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     clearInterval(ws._msgReset);
+    clearInterval(ws._drawReset);
     professores.delete(ws);
     aulaState.quiz?.respostas.delete(ws); // evita referência pendente de WS desconectado
     if (alunos.has(ws)) {
