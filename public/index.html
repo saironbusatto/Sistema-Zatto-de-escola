@@ -15,7 +15,6 @@
     .wrap{max-width:1060px;margin:0 auto;padding:28px 18px 60px}
     .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:38px}
     .brand{font-family:'Fraunces',serif;font-size:22px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:transparent;color:var(--text);padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px}
     .btn.primary{background:var(--brand);color:#0b1220;border-color:transparent}
     .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
@@ -33,7 +32,7 @@
     ul{padding-left:18px;color:#d4deea;line-height:1.8}
     .ok{color:var(--ok);font-weight:700}
     .road li{color:#c7d3e6}
-    .cta{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+    .cta{margin-top:24px}
     .foot{margin-top:30px;color:#8ca0bb;font-size:12px;text-align:center}
     @media (max-width:900px){
       .hero,.sec{grid-template-columns:1fr}
@@ -45,11 +44,6 @@
   <div class="wrap">
     <div class="top">
       <div class="brand">Plataforma Curso</div>
-      <div class="actions">
-        <a class="btn" href="/platform-admin.html">Admin Hierarquia</a>
-        <a class="btn" href="/auth/sign-up.html">Criar conta</a>
-        <a class="btn primary" id="btn-login" href="/auth/sign-in.html">Entrar</a>
-      </div>
     </div>
 
     <section class="hero">
@@ -64,8 +58,7 @@
           <span class="pill">Desenho colaborativo</span>
         </div>
         <div class="cta">
-          <a class="btn primary" href="/auth/sign-in.html?redirect_url=%2Fprofessor.html">Sou professor</a>
-          <a class="btn" href="/auth/sign-in.html?redirect_url=%2F">Sou aluno</a>
+          <a class="btn primary" id="btn-acesso" href="/auth/sign-in.html">Acessar plataforma</a>
         </div>
       </div>
       <div class="card">
@@ -107,13 +100,18 @@
   </div>
 
   <script>
+    // Se já estiver logado, redireciona direto para a página do seu role
     async function hydrate() {
       try {
-        const me = await fetch('/api/auth/me');
-        if (me.ok) {
-          const btn = document.getElementById('btn-login');
-          btn.textContent = 'Acessar plataforma';
-          btn.href = '/professor.html';
+        const r = await fetch('/api/platform/me');
+        if (!r.ok) return;
+        const user = await r.json();
+        const map = { root: '/platform-admin.html', professor: '/professor.html', aluno: '/aluno.html' };
+        const dest = map[user.role];
+        if (dest) {
+          const btn = document.getElementById('btn-acesso');
+          btn.textContent = 'Entrar na plataforma';
+          btn.href = dest;
         }
       } catch {}
     }

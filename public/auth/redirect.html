@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Redirecionando…</title>
 <style>
   body{margin:0;background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100dvh}
@@ -21,8 +22,6 @@
       const r = await fetch('/api/platform/me');
       if (!r.ok) { location.href = '/auth/sign-in.html'; return; }
       const user = await r.json();
-      const dest = new URLSearchParams(location.search).get('redirect_url');
-      if (dest && !dest.startsWith('http')) { location.href = dest; return; }
       const map = { root: '/platform-admin.html', professor: '/professor.html', aluno: '/aluno.html' };
       location.href = map[user.role] || '/';
     } catch {
