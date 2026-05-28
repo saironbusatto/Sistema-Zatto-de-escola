@@ -244,9 +244,11 @@ body{
 .turma-avatar[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#0d1117;color:var(--text);font-size:10px;white-space:nowrap;padding:3px 7px;border-radius:4px;border:1px solid var(--border);pointer-events:none;z-index:10;}
 
 /* ── Cam PiP ── */
-#cam-pip{position:fixed;bottom:20px;left:272px;z-index:400;display:none;flex-direction:column;align-items:center;gap:6px;}
+#cam-pip{position:fixed;bottom:20px;right:20px;z-index:400;display:none;flex-direction:column;align-items:center;gap:6px;}
 #cam-pip-inner{width:148px;height:111px;border-radius:10px;overflow:hidden;background:#000;border:2px solid var(--red);box-shadow:0 0 0 3px rgba(255,107,107,.12),0 8px 24px rgba(0,0,0,.5);position:relative;}
 #cam-video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.cam-pip-handle{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:9px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;cursor:grab;user-select:none;touch-action:none;}
+.cam-pip-handle:active{cursor:grabbing;}
 .cam-live-badge{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:8px;font-weight:700;letter-spacing:.1em;padding:2px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:4px;}
 .cam-live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:camPulse 1s ease infinite;}
 @keyframes camPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
@@ -1289,6 +1291,65 @@ const _iceConfig = { iceServers: [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
 ] };
+const _camPipPosKey = 'zatto.professor.camPipPos';
+
+function initCamPipDrag() {
+  const pip = document.getElementById('cam-pip');
+  const handle = document.getElementById('cam-pip-handle');
+  if (!pip || !handle || pip.dataset.dragInit === '1') return;
+  pip.dataset.dragInit = '1';
+
+  // Restore the last camera position selected by the professor.
+  try {
+    const saved = JSON.parse(localStorage.getItem(_camPipPosKey) || 'null');
+    if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+      pip.style.left = `${saved.left}px`;
+      pip.style.top = `${saved.top}px`;
+      pip.style.right = 'auto';
+      pip.style.bottom = 'auto';
+    }
+  } catch {}
+
+  let dragging = false, dx = 0, dy = 0;
+  handle.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    const rect = pip.getBoundingClientRect();
+    dx = e.clientX - rect.left;
+    dy = e.clientY - rect.top;
+    handle.setPointerCapture(e.pointerId);
+    handle.style.cursor = 'grabbing';
+    pip.style.right = 'auto';
+    pip.style.bottom = 'auto';
+    if (!pip.style.left || !pip.style.top) {
+      pip.style.left = `${rect.left}px`;
+      pip.style.top = `${rect.top}px`;
+    }
+  });
+
+  handle.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const maxX = Math.max(8, window.innerWidth - pip.offsetWidth - 8);
+    const maxY = Math.max(8, window.innerHeight - pip.offsetHeight - 8);
+    const left = Math.min(maxX, Math.max(8, e.clientX - dx));
+    const top = Math.min(maxY, Math.max(8, e.clientY - dy));
+    pip.style.left = `${left}px`;
+    pip.style.top = `${top}px`;
+  });
+
+  function stopDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    handle.style.cursor = 'grab';
+    try { handle.releasePointerCapture(e.pointerId); } catch {}
+    localStorage.setItem(_camPipPosKey, JSON.stringify({
+      left: parseFloat(pip.style.left) || 0,
+      top: parseFloat(pip.style.top) || 0,
+    }));
+  }
+
+  handle.addEventListener('pointerup', stopDrag);
+  handle.addEventListener('pointercancel', stopDrag);
+}
 
 async function toggleCam() {
   if (_camStream) { stopCam(); } else { await startCam(); }
@@ -1296,6 +1357,7 @@ async function toggleCam() {
 
 async function startCam() {
   try {
+    initCamPipDrag();
     _camStream = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
       audio: false,
@@ -1362,6 +1424,7 @@ async function _camOnIceFromStudent(msg) {
 
 <!-- Câmera PiP -->
 <div id="cam-pip">
+  <div id="cam-pip-handle" class="cam-pip-handle">arraste a câmera</div>
   <div id="cam-pip-inner">
     <video id="cam-video" autoplay muted playsinline></video>
     <div class="cam-live-badge"><div class="cam-live-dot"></div>AO VIVO</div>

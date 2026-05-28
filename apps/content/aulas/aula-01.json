@@ -3,10 +3,10 @@
     "id": "aula-01",
     "titulo": "Claude 101",
     "url_origem": "https://anthropic.skilljar.com/claude-101",
-    "descricao_origem": "Learn how to use Claude for everyday work tasks, understand core features, and explore resources for more advanced learning on other topics.",
-    "fonte_obrigatoria": "apps/content/aulas/raspagem_bruta.txt"
+    "fonte_obrigatoria": "apps/content/aulas/raspagem_bruta.txt",
+    "persona_aplicada": "wiki/knowledge-management/persona_professor.md"
   },
-  "curriculum_origem": [
+  "topicos_origem": [
     "Meet Claude",
     "What is Claude?",
     "Your first conversation with Claude",
@@ -31,27 +31,25 @@
   "blocos": [
     {
       "ordem": 1,
-      "slide": "Abertura da trilha Claude 101",
-      "fala_teleprompter": "Nesta aula, vamos seguir a trilha Claude 101 para aprender uso em tarefas de trabalho, recursos centrais e caminhos para estudo avancado.",
-      "cta_professor": "No chat, escreva qual tarefa de trabalho voce quer resolver melhor com Claude.",
-      "lembretes_operacionais": [
-        "Mostrar o titulo Claude 101",
-        "Ler a descricao oficial da trilha"
-      ],
+      "slide": "Abertura: Claude 101 sem modinha",
+      "parabola_real": "No porto antigo, piloto que ignora mapa nao e ousado; e estatistica de naufragio.",
+      "comparacao": "Claude 101 e o mapa de navegacao para trabalho diario com IA.",
+      "direto_ao_ponto": "A trilha promete uso de Claude em tarefas cotidianas, compreensao de recursos centrais e caminho para estudo avancado.",
+      "fixacao": "No mercado, todo semestre aparece um guru vendendo atalho. Mapa continua vencendo slogan.",
+      "cta_gamificado": "Se entendeu o mapa da jornada, digite 'Piloto' no chat para desbloquear o Nivel 1.",
       "base_em_raspagem": [
         "Claude 101",
-        "Learn how to use Claude for everyday work tasks..."
+        "Learn how to use Claude for everyday work tasks, understand core features, and explore resources for more advanced learning on other topics."
       ]
     },
     {
       "ordem": 2,
-      "slide": "Fundamentos iniciais",
-      "fala_teleprompter": "Os primeiros modulos da trilha sao: Meet Claude, What is Claude, Your first conversation with Claude e Getting better results.",
-      "cta_professor": "Escolha no chat qual desses quatro pontos voce quer praticar primeiro.",
-      "lembretes_operacionais": [
-        "Exibir lista dos 4 modulos",
-        "Pausar para leitura do chat"
-      ],
+      "slide": "Fundamentos: Meet Claude ate Getting better results",
+      "parabola_real": "Aristoteles lembrava que comecar bem nao encerra a obra, mas evita metade dos erros.",
+      "comparacao": "Os modulos iniciais constroem a base: conhecer Claude, primeira conversa e melhoria de resultados.",
+      "direto_ao_ponto": "Sequencia oficial: Meet Claude, What is Claude?, Your first conversation with Claude, Getting better results.",
+      "fixacao": "Quem tenta pular fundacao normalmente chama retrabalho de criatividade.",
+      "cta_gamificado": "Se voce identifica por que a primeira conversa define o resto, digite 'Fundacao' para liberar o Nivel 2.",
       "base_em_raspagem": [
         "Meet Claude",
         "What is Claude?",
@@ -61,13 +59,12 @@
     },
     {
       "ordem": 3,
-      "slide": "Produtividade e organizacao",
-      "fala_teleprompter": "A trilha avanca para Claude desktop app: Chat, Cowork, Code; Organizing your work and knowledge; Introduction to projects; Creating with artifacts; Working with skills.",
-      "cta_professor": "No chat, digite qual desses modulos parece mais util para sua rotina atual.",
-      "lembretes_operacionais": [
-        "Apresentar modulos em sequencia",
-        "Conectar cada modulo ao trabalho diario"
-      ],
+      "slide": "Producao: Chat, Cowork, Code + organizacao",
+      "parabola_real": "Oficina sem bancada vira museu do improviso: muita ferramenta, pouca entrega.",
+      "comparacao": "Desktop app, projetos, artifacts e skills organizam o trabalho para produzir com consistencia.",
+      "direto_ao_ponto": "Blocos tecnicos: Claude desktop app: Chat, Cowork, Code; Organizing your work and knowledge; Introduction to projects; Creating with artifacts; Working with skills.",
+      "fixacao": "A industria chama bagunca de agilidade ate o cliente pedir prazo por escrito.",
+      "cta_gamificado": "Se voce sabe em qual modulo colocaria seu fluxo atual, escreva 'Bancada' para destravar o Nivel 3.",
       "base_em_raspagem": [
         "Claude desktop app: Chat, Cowork, Code",
         "Organizing your work and knowledge",
@@ -78,13 +75,12 @@
     },
     {
       "ordem": 4,
-      "slide": "Expansao de capacidades",
-      "fala_teleprompter": "Depois, a trilha cobre Expanding Claude's reach, Connecting your tools, Enterprise search e Research mode for deep dives.",
-      "cta_professor": "Marque no chat qual recurso voce quer testar primeiro: tools, search ou research mode.",
-      "lembretes_operacionais": [
-        "Manter nomes dos modulos em ingles como na fonte",
-        "Reforcar que essa parte amplia alcance de uso"
-      ],
+      "slide": "Alcance: tools, search e research mode",
+      "parabola_real": "Biblioteca sem indice nao e sabedoria; e decoracao cara.",
+      "comparacao": "Connecting your tools, Enterprise search e Research mode ampliam alcance sem perder rastreabilidade.",
+      "direto_ao_ponto": "Sequencia oficial desta etapa: Expanding Claude's reach, Connecting your tools, Enterprise search, Research mode for deep dives.",
+      "fixacao": "Tem empresa com painel bonito e busca inutil. Parece satira, mas e operacao real.",
+      "cta_gamificado": "Se entendeu a diferenca entre alcance e ruido, digite 'Indice' para liberar o Nivel 4.",
       "base_em_raspagem": [
         "Expanding Claude's reach",
         "Connecting your tools",
@@ -94,13 +90,12 @@
     },
     {
       "ordem": 5,
-      "slide": "Aplicacao e encerramento",
-      "fala_teleprompter": "Na reta final, temos Putting it all together, Claude in action: use-cases by role, Other ways to work with Claude, Conclusion & certificate, What's next? e Certificate of completion.",
-      "cta_professor": "No chat, escreva seu proximo passo apos concluir a trilha.",
-      "lembretes_operacionais": [
-        "Destacar blocos de conclusao",
-        "Encaminhar para certificado de conclusao"
-      ],
+      "slide": "Consolidacao e certificado",
+      "parabola_real": "No xadrez, ataque sem plano vence apenas adversario distraido.",
+      "comparacao": "Putting it all together e use-cases por papel unem tecnica, contexto e execucao.",
+      "direto_ao_ponto": "Fechamento do curriculo: Putting it all together; Claude in action: use-cases by role; Other ways to work with Claude; Conclusion & certificate; What's next?; Certificate of completion.",
+      "fixacao": "Certificado sem aplicacao vira item de parede. Aplicacao sem metodo vira urgencia eterna.",
+      "cta_gamificado": "Se voce ja escolheu um use-case por papel para aplicar hoje, escreva 'Xeque' e desbloqueie o Nivel 5.",
       "base_em_raspagem": [
         "Putting it all together",
         "Claude in action: use-cases by role",
@@ -112,19 +107,17 @@
     },
     {
       "ordem": 6,
-      "slide": "Data and Privacy",
-      "fala_teleprompter": "A secao Data and Privacy explica que Skilljar hospeda o conteudo, coleta analytics de aprendizagem e diferencia esses dados da conta Anthropic. Tambem informa o canal academy-support@anthropic.com para solicitacao de exclusao.",
-      "cta_professor": "Se quiser, registre no chat uma duvida sobre dados e privacidade para tratarmos antes do encerramento.",
-      "lembretes_operacionais": [
-        "Ler os pontos de privacidade sem interpretar alem do texto",
-        "Reforcar o email de suporte informado na fonte"
-      ],
+      "slide": "Data and Privacy: governanca sem teatro",
+      "parabola_real": "Contrato lido depois da assinatura e esporte de alto risco.",
+      "comparacao": "A secao Data and Privacy separa dados de aprendizagem no Skilljar dos dados da conta Anthropic e explica coleta, seguranca e exclusao.",
+      "direto_ao_ponto": "O texto informa analytics de progresso, SOC 2, e canal academy-support@anthropic.com para solicitacao de exclusao.",
+      "fixacao": "Quando privacidade entra so no rodape, nao e estrategia; e defesa juridica tardia.",
+      "cta_gamificado": "Se voce entendeu a fronteira entre dados de curso e conta Anthropic, digite 'Clausula' para concluir a jornada.",
       "base_em_raspagem": [
         "Data and Privacy",
-        "What is Skilljar and why am I logging into it?",
-        "What information does Skilljar collect about my learning activity?",
-        "How is my Skilljar data different from my Anthropic account data?",
-        "How do I delete my learning activity or account?"
+        "Skilljar collects basic learning analytics...",
+        "Skilljar is SOC 2 compliant...",
+        "To request deletion of your learning data or account, email academy-support@anthropic.com."
       ]
     }
   ]

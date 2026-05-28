@@ -9,5 +9,8 @@
     "dev:web": "npm --workspace=apps/web run dev",
     "build": "npm --workspace=apps/web run build",
     "setup": "npm --workspace=apps/ws-server run setup"
+  },
+  "dependencies": {
+    "playwright": "^1.60.0"
   }
 }

@@ -197,3 +197,33 @@
   - apps/web/src/components/teleprompter/teleprompter-view.tsx
   - apps/web/src/app/(plataforma)/professor/teleprompter/page.tsx
   - wiki/knowledge-management/2026-05-28-dev-ead-core-teleprompter-start.md
+
+## [2026-05-28] dev-ead-core | Validação final do teleprompter
+- Updated: 2026-05-28-dev-ead-core-validation-build
+- Scope: fechamento do último checkbox de validação em `.octogent/tentacles/dev-ead-core/todo.md` e registro da evidência de build no wiki
+- Evidence:
+  - .octogent/tentacles/dev-ead-core/todo.md
+  - wiki/knowledge-management/2026-05-28-dev-ead-core-validation-build.md
+  - npm run build
+
+## [2026-05-28] ops | Run local web + ws-server
+- Updated: 2026-05-28-run-local-web-ws
+- Scope:
+  - apps/ws-server/.env
+  - execução local de apps/web e apps/ws-server
+- Evidence:
+  - apps/ws-server/.env (PORT=3001)
+  - HTTP 200 em 3000 e 3001
+
+## [2026-05-28] feat | Câmera arrastável no painel do professor
+- Updated: 2026-05-28-professor-camera-draggable
+- Scope: `apps/ws-server/public/professor.html`
+- Evidence:
+  - apps/ws-server/public/professor.html
+
+## [2026-05-28] ops | Rebuild local sem Docker
+- Updated: 2026-05-28-rebuild-local-sem-docker
+- Scope: build/restart local
+- Evidence:
+  - npm run build (ok)
+  - HTTP 200 em 3000 e 3001

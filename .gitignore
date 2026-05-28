@@ -25,3 +25,5 @@ apps/web/out/
 
 # build
 apps/web/.turbo
+
+.octogent
