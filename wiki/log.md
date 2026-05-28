@@ -59,3 +59,104 @@
 
 ## [2026-05-28] ops | Política de aceite de swarm do coordenador-raiz
 - Updated: 2026-05-28-swarm-acceptance-policy-coordenador-raiz
+
+## [2026-05-28] ops | Diagnóstico botão Add Tentacle Manually
+- Updated: 2026-05-28-diagnostico-ui-add-tentacle-manual
+
+## [2026-05-28] ops | Fix UI Add Tentacle Manually no estado populated
+- Updated: 2026-05-28-fix-ui-add-tentacle-manual-populated-state
+
+## [2026-05-28] ops | Fix final Add Tentacle Manually em detail mode
+- Updated: 2026-05-28-fix-ui-add-tentacle-manual-detail-mode
+
+## [2026-05-28] ops | Update SWARM_ACCEPTANCE coordenador-raiz
+- Updated: 2026-05-28-update-swarm-acceptance-coordenador-raiz
+
+## [2026-05-28] ops | Instalação de skills sugeridas com aliases
+- Updated: 2026-05-28-install-suggested-skills-aliases
+
+## [2026-05-28] ops | Sync global de skills solicitadas
+- Updated: 2026-05-28-global-skills-sync-awesome-index
+- Scope: skills globais (`~/.codex/skills`) para disponibilidade por nome exato
+- Evidence:
+  - ~/.codex/skills/senior-frontend/SKILL.md
+  - ~/.codex/skills/debugger/SKILL.md
+  - ~/.codex/skills/bug-fix/SKILL.md
+  - ~/.codex/skills/test-writer-fixer/SKILL.md
+  - ~/.codex/skills/git-pushing/SKILL.md
+
+## [2026-05-28] ops | Atualização de contexto do dev-ead-core
+- Updated: 2026-05-28-dev-ead-core-context-update
+- Scope: `.octogent/tentacles/dev-ead-core/CONTEXT.md`
+- Evidence:
+  - .octogent/tentacles/dev-ead-core/CONTEXT.md
+
+## [2026-05-28] ops | Fix header CONTEXT dev-ead-core
+- Updated: 2026-05-28-dev-ead-core-context-header-fix
+- Scope: `.octogent/tentacles/dev-ead-core/CONTEXT.md`
+- Evidence:
+  - .octogent/tentacles/dev-ead-core/CONTEXT.md
+
+## [2026-05-28] ops | Instalação de skills firecrawl/web-search/copywriting
+- Updated: 2026-05-28-install-skills-firecrawl-websearch-copywriting
+- Scope: global `~/.codex/skills` e local `.claude/skills`
+- Evidence:
+  - ~/.codex/skills/mcp-firecrawl/SKILL.md
+  - ~/.codex/skills/browser-automation/SKILL.md
+  - ~/.codex/skills/web-search/SKILL.md
+  - ~/.codex/skills/copywriting-frameworks/SKILL.md
+  - .claude/skills/mcp-firecrawl/SKILL.md
+  - .claude/skills/browser-automation/SKILL.md
+  - .claude/skills/web-search/SKILL.md
+  - .claude/skills/copywriting-frameworks/SKILL.md
+
+## [2026-05-28] ops | Verificação de handshake MCP Firecrawl
+- Updated: 2026-05-28-firecrawl-mcp-handshake-check
+- Scope: checagem operacional de disponibilidade MCP/API
+- Evidence:
+  - ~/.codex/config.toml (entrada `mcp_servers.firecrawl`)
+  - timeout 5s npx -y firecrawl-mcp (exit 124 esperado)
+  - curl /v1/scrape (HTTP 200)
+
+## [2026-05-28] ops | Backlog do tentáculo roteirista-ead
+- Updated: 2026-05-28-roteirista-ead-backlog-update
+- Scope: `.octogent/tentacles/ROTEIRISTA-EAD/todo.md`
+- Evidence:
+  - .octogent/tentacles/ROTEIRISTA-EAD/todo.md
+
+## [2026-05-28] ops | Configuração de credenciais Skilljar no .env
+- Updated: 2026-05-28-env-skilljar-credentials
+- Scope: `.env`
+- Evidence:
+  - .env (SKILLJAR_URL, SKILLJAR_EMAIL, SKILLJAR_PASSWORD)
+
+## [2026-05-28] ops | Atualização de credenciais Skilljar no .env
+- Updated: 2026-05-28-env-skilljar-credentials-rotation
+- Scope: `.env`
+- Evidence:
+  - .env (SKILLJAR_EMAIL, SKILLJAR_PASSWORD)
+
+## [2026-05-28] ops | Atualização de SKILLJAR_URL
+- Updated: 2026-05-28-env-skilljar-url-update
+- Scope: `.env`
+- Evidence:
+  - .env (SKILLJAR_URL)
+
+## [2026-05-28] ops | Delegação Aula 01 Skilljar + Teleprompter
+- Updated: 2026-05-28-delegacao-aula01-skilljar-teleprompter
+- Scope: reescrita de TODOs das tentacles `ROTEIRISTA-EAD` e `dev-ead-core` + inicialização imediata da `ROTEIRISTA-EAD`
+- Evidence:
+  - .octogent/tentacles/ROTEIRISTA-EAD/todo.md
+  - .octogent/tentacles/dev-ead-core/todo.md
+  - wiki/knowledge-management/2026-05-28-delegacao-aula01-skilljar-teleprompter.md
+  - octogent terminal create --name roteirista-ead-run-01 --tentacle-id ROTEIRISTA-EAD
+  - octogent channel send terminal-2 "EXECUCAO IMEDIATA ..."
+
+
+## [2026-05-28] roteirista-ead | Correção com raspagem real Skilljar (Aula 01)
+- Updated: 2026-05-28-aula01-raspagem-real-skilljar
+- Scope: limpeza de artefatos inferidos, raspagem real autenticada e regeneração restrita do roteiro
+- Evidence:
+  - apps/content/aulas/raspagem_bruta.txt
+  - apps/content/aulas/aula-01.json
+  - wiki/knowledge-management/2026-05-28-aula01-raspagem-real-skilljar.md

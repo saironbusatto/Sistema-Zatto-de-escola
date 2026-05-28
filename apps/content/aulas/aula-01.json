@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "id": "aula-01",
+    "titulo": "Claude 101",
+    "url_origem": "https://anthropic.skilljar.com/claude-101",
+    "descricao_origem": "Learn how to use Claude for everyday work tasks, understand core features, and explore resources for more advanced learning on other topics.",
+    "fonte_obrigatoria": "apps/content/aulas/raspagem_bruta.txt"
+  },
+  "curriculum_origem": [
+    "Meet Claude",
+    "What is Claude?",
+    "Your first conversation with Claude",
+    "Getting better results",
+    "Claude desktop app: Chat, Cowork, Code",
+    "Organizing your work and knowledge",
+    "Introduction to projects",
+    "Creating with artifacts",
+    "Working with skills",
+    "Expanding Claude's reach",
+    "Connecting your tools",
+    "Enterprise search",
+    "Research mode for deep dives",
+    "Putting it all together",
+    "Claude in action: use-cases by role",
+    "Other ways to work with Claude",
+    "Conclusion & certificate",
+    "What's next?",
+    "Certificate of completion",
+    "Data and Privacy"
+  ],
+  "blocos": [
+    {
+      "ordem": 1,
+      "slide": "Abertura da trilha Claude 101",
+      "fala_teleprompter": "Nesta aula, vamos seguir a trilha Claude 101 para aprender uso em tarefas de trabalho, recursos centrais e caminhos para estudo avancado.",
+      "cta_professor": "No chat, escreva qual tarefa de trabalho voce quer resolver melhor com Claude.",
+      "lembretes_operacionais": [
+        "Mostrar o titulo Claude 101",
+        "Ler a descricao oficial da trilha"
+      ],
+      "base_em_raspagem": [
+        "Claude 101",
+        "Learn how to use Claude for everyday work tasks..."
+      ]
+    },
+    {
+      "ordem": 2,
+      "slide": "Fundamentos iniciais",
+      "fala_teleprompter": "Os primeiros modulos da trilha sao: Meet Claude, What is Claude, Your first conversation with Claude e Getting better results.",
+      "cta_professor": "Escolha no chat qual desses quatro pontos voce quer praticar primeiro.",
+      "lembretes_operacionais": [
+        "Exibir lista dos 4 modulos",
+        "Pausar para leitura do chat"
+      ],
+      "base_em_raspagem": [
+        "Meet Claude",
+        "What is Claude?",
+        "Your first conversation with Claude",
+        "Getting better results"
+      ]
+    },
+    {
+      "ordem": 3,
+      "slide": "Produtividade e organizacao",
+      "fala_teleprompter": "A trilha avanca para Claude desktop app: Chat, Cowork, Code; Organizing your work and knowledge; Introduction to projects; Creating with artifacts; Working with skills.",
+      "cta_professor": "No chat, digite qual desses modulos parece mais util para sua rotina atual.",
+      "lembretes_operacionais": [
+        "Apresentar modulos em sequencia",
+        "Conectar cada modulo ao trabalho diario"
+      ],
+      "base_em_raspagem": [
+        "Claude desktop app: Chat, Cowork, Code",
+        "Organizing your work and knowledge",
+        "Introduction to projects",
+        "Creating with artifacts",
+        "Working with skills"
+      ]
+    },
+    {
+      "ordem": 4,
+      "slide": "Expansao de capacidades",
+      "fala_teleprompter": "Depois, a trilha cobre Expanding Claude's reach, Connecting your tools, Enterprise search e Research mode for deep dives.",
+      "cta_professor": "Marque no chat qual recurso voce quer testar primeiro: tools, search ou research mode.",
+      "lembretes_operacionais": [
+        "Manter nomes dos modulos em ingles como na fonte",
+        "Reforcar que essa parte amplia alcance de uso"
+      ],
+      "base_em_raspagem": [
+        "Expanding Claude's reach",
+        "Connecting your tools",
+        "Enterprise search",
+        "Research mode for deep dives"
+      ]
+    },
+    {
+      "ordem": 5,
+      "slide": "Aplicacao e encerramento",
+      "fala_teleprompter": "Na reta final, temos Putting it all together, Claude in action: use-cases by role, Other ways to work with Claude, Conclusion & certificate, What's next? e Certificate of completion.",
+      "cta_professor": "No chat, escreva seu proximo passo apos concluir a trilha.",
+      "lembretes_operacionais": [
+        "Destacar blocos de conclusao",
+        "Encaminhar para certificado de conclusao"
+      ],
+      "base_em_raspagem": [
+        "Putting it all together",
+        "Claude in action: use-cases by role",
+        "Other ways to work with Claude",
+        "Conclusion & certificate",
+        "What's next?",
+        "Certificate of completion"
+      ]
+    },
+    {
+      "ordem": 6,
+      "slide": "Data and Privacy",
+      "fala_teleprompter": "A secao Data and Privacy explica que Skilljar hospeda o conteudo, coleta analytics de aprendizagem e diferencia esses dados da conta Anthropic. Tambem informa o canal academy-support@anthropic.com para solicitacao de exclusao.",
+      "cta_professor": "Se quiser, registre no chat uma duvida sobre dados e privacidade para tratarmos antes do encerramento.",
+      "lembretes_operacionais": [
+        "Ler os pontos de privacidade sem interpretar alem do texto",
+        "Reforcar o email de suporte informado na fonte"
+      ],
+      "base_em_raspagem": [
+        "Data and Privacy",
+        "What is Skilljar and why am I logging into it?",
+        "What information does Skilljar collect about my learning activity?",
+        "How is my Skilljar data different from my Anthropic account data?",
+        "How do I delete my learning activity or account?"
+      ]
+    }
+  ]
+}
