@@ -188,3 +188,12 @@
   - apps/content/aulas/raspagem_bruta.txt
   - wiki/knowledge-management/2026-05-28-aula01-raspagem-real-skilljar.md
   - wiki/knowledge-management/2026-05-28-roteirista-ead-auditoria-skilljar-conclusao.md
+
+## [2026-05-28] dev-ead-core | Teleprompter Next.js integrado ao Aula 01 + WS
+- Updated: 2026-05-28-dev-ead-core-teleprompter-start
+- Scope: implementacao/robustez do teleprompter em Next.js com `aula-01.json` como fonte de verdade e integracao com websocket existente
+- Evidence:
+  - apps/web/src/lib/aula01.ts
+  - apps/web/src/components/teleprompter/teleprompter-view.tsx
+  - apps/web/src/app/(plataforma)/professor/teleprompter/page.tsx
+  - wiki/knowledge-management/2026-05-28-dev-ead-core-teleprompter-start.md
