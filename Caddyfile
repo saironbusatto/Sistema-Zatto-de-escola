@@ -1,0 +1,42 @@
+cursos.s-iron.tech {
+    # WebSocket — proxy com upgrade
+    handle /ws* {
+        reverse_proxy ws-server:3000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    # API do ws-server (admin, content, platform, session, join)
+    handle /api/admin* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/content* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/platform* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/session* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/join* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/room-code* {
+        reverse_proxy ws-server:3000
+    }
+    handle /api/clerk* {
+        reverse_proxy ws-server:3000
+    }
+
+    # Tudo o mais vai pro Next.js
+    handle {
+        reverse_proxy web:3000
+    }
+
+    encode gzip
+    log {
+        output file /var/log/caddy/zatto.log
+    }
+}

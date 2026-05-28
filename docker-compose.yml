@@ -1,21 +1,40 @@
 services:
-  app:
-    build: .
-    container_name: plataforma-curso-app
+  ws-server:
+    build:
+      context: ./apps/ws-server
+    container_name: zatto-ws-server
     restart: unless-stopped
-    env_file:
-      - .env.production
+    env_file: .env.production
     ports:
-      - "3010:3000"
+      - "3001:3000"
     volumes:
-      - ./db:/app/db
-      - ./data:/app/data
+      - ./data/db:/app/db
     networks:
-      - plataforma-curso-net
+      - zatto-internal
+      - albatroz_app-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/room-code"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./apps/web
+    container_name: zatto-web
+    restart: unless-stopped
+    env_file: .env.production
+    ports:
+      - "3000:3000"
+    depends_on:
+      ws-server:
+        condition: service_healthy
+    networks:
+      - zatto-internal
       - albatroz_app-network
 
 networks:
-  plataforma-curso-net:
+  zatto-internal:
     driver: bridge
   albatroz_app-network:
     external: true

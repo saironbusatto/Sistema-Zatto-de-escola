@@ -1,10 +1,27 @@
+# deps
 node_modules/
+**/node_modules/
+
+# env
 .env
-*.env.*
-*.log
-db/plataforma.db
-db/plataforma.db-wal
-db/plataforma.db-shm
+.env.local
+.env.*.local
 *.pem
 CREDENCIAIS.md
+
+# runtime
+*.log
 .room_code
+data/db/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+
+# SQLite
+**/plataforma.db
+**/plataforma.db-wal
+**/plataforma.db-shm
+
+# build
+apps/web/.turbo

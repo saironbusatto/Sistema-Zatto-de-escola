@@ -1,20 +1,13 @@
 {
-  "name": "plataforma-aula",
-  "version": "1.0.0",
+  "name": "zatto-escola",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "dependencies": {
-    "@clerk/express": "^2.1.15",
-    "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.9.0",
-    "dotenv": "^17.4.2",
-    "express": "^4.18.2",
-    "express-session": "^1.19.0",
-    "ws": "^8.16.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.3"
+    "dev:ws": "npm --workspace=apps/ws-server run dev",
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build": "npm --workspace=apps/web run build",
+    "setup": "npm --workspace=apps/ws-server run setup"
   }
 }
