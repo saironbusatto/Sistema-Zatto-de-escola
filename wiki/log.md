@@ -160,3 +160,31 @@
   - apps/content/aulas/raspagem_bruta.txt
   - apps/content/aulas/aula-01.json
   - wiki/knowledge-management/2026-05-28-aula01-raspagem-real-skilljar.md
+
+## [2026-05-28] ops | Persona professor + protocolo no roteirista
+- Updated: 2026-05-28-persona-professor-e-protocolo-roteirista
+- Scope:
+  - wiki/knowledge-management/persona_professor.md
+  - .octogent/tentacles/ROTEIRISTA-EAD/CONTEXT.md
+- Evidence:
+  - wiki/knowledge-management/persona_professor.md
+  - .octogent/tentacles/ROTEIRISTA-EAD/CONTEXT.md
+
+## [2026-05-28] roteirista-ead | Reescrita Aula 01 com persona do professor
+- Updated: 2026-05-28-aula01-persona-professor-aplicada
+- Scope: reescrita integral do roteiro com tom formal/satirico e CTAs gamificados
+- Evidence:
+  - apps/content/aulas/raspagem_bruta.txt
+  - apps/content/aulas/aula-01.json
+  - wiki/knowledge-management/persona_professor.md
+  - wiki/knowledge-management/2026-05-28-aula01-persona-professor-aplicada.md
+
+## [2026-05-28] roteirista-ead | Auditoria final: criacao Aula 01 Skilljar
+- Updated: 2026-05-28-roteirista-ead-auditoria-skilljar-conclusao
+- Scope: reconciliacao do backlog `ROTEIRISTA-EAD` com evidencias versionadas da criacao/execucao da Aula 01
+- Evidence:
+  - .octogent/tentacles/ROTEIRISTA-EAD/todo.md
+  - apps/content/aulas/aula-01.json
+  - apps/content/aulas/raspagem_bruta.txt
+  - wiki/knowledge-management/2026-05-28-aula01-raspagem-real-skilljar.md
+  - wiki/knowledge-management/2026-05-28-roteirista-ead-auditoria-skilljar-conclusao.md
