@@ -27,3 +27,5 @@
 
 ## [2026-05-28] ops | Fix NetworkError setup Octogent
 - Updated: 2026-05-28-octogent-networkerror-setup-fix
+
+## [2026-05-28] ingest | Next.js 16 + Monorepo — Padrões e Armadilhas
