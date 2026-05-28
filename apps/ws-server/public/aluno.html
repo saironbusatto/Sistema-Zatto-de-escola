@@ -641,6 +641,7 @@ let nomeAluno = '';
 let blocoAtualRender = -1;   // -1 = ainda não recebeu nenhum state_update
 let primeiroStateRecebido = false;
 let respostasEnviadas = new Set();
+let perguntasPendentes = new Map(); // blocoId → { texto }
 let ws, wsReady = false;
 let avancoTimer = null;
 
@@ -1198,6 +1199,21 @@ function handleStateUpdate(msg) {
     handleNovaPergunta(msg.perguntaAtiva);
   }
 
+  // Exibir perguntas pendentes para blocos que acabaram de ser renderizados
+  if (liberado >= 0) {
+    for (const [blocoId, { texto }] of perguntasPendentes) {
+      if (blocoId <= liberado) {
+        const paEl = document.getElementById(`perg-aluno-${blocoId}`);
+        const ptEl = document.getElementById(`perg-texto-${blocoId}`);
+        if (paEl && ptEl) {
+          paEl.style.display = 'block';
+          ptEl.textContent = texto;
+        }
+        perguntasPendentes.delete(blocoId);
+      }
+    }
+  }
+
   // Câmera do professor
   if (msg.camAtiva && !_camPc) _subscribeCam();
   if (!msg.camAtiva && _camPc) handleCamStop();
@@ -1225,10 +1241,16 @@ function mostrarAvanco(numBloco) {
 }
 
 function handleNovaPergunta(msg) {
+  // Guarda a pergunta para exibir quando o bloco for renderizado
+  perguntasPendentes.set(msg.blocoId, { texto: msg.texto });
+  
+  // Se o bloco já estiver renderizado, exibe imediatamente
   const paEl = document.getElementById(`perg-aluno-${msg.blocoId}`);
   const ptEl = document.getElementById(`perg-texto-${msg.blocoId}`);
-  if (paEl) paEl.style.display = 'block';
-  if (ptEl) ptEl.textContent = msg.texto;
+  if (paEl && ptEl) {
+    paEl.style.display = 'block';
+    ptEl.textContent = msg.texto;
+  }
 }
 
 function handleRespostaConfirmada(msg) {
