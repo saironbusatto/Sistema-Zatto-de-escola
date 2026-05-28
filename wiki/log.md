@@ -29,3 +29,33 @@
 - Updated: 2026-05-28-octogent-networkerror-setup-fix
 
 ## [2026-05-28] ingest | Next.js 16 + Monorepo — Padrões e Armadilhas
+
+## [2026-05-28] ops | Default provider Octogent = Codex
+- Updated: 2026-05-28-octogent-default-codex
+
+## [2026-05-28] ops | Setup tentáculo coordenador-raiz
+- Updated: 2026-05-28-octogent-coordenador-raiz-setup
+
+## [2026-05-28] ops | Skills do coordenador-raiz alocadas
+- Updated: 2026-05-28-coordenador-skills-alocadas
+
+## [2026-05-28] ops | Ordem de orquestradores atualizada
+- Updated: 2026-05-28-ordem-orquestradores-coordenador
+
+## [2026-05-28] ops | Fix skills indisponíveis do coordenador
+- Updated: 2026-05-28-fix-skills-indisponiveis-coordenador
+
+## [2026-05-28] ops | Setup tentáculos de conhecimento e oráculos
+- Updated: 2026-05-28-setup-tentaculos-conhecimento
+
+## [2026-05-28] ops | Reset tentáculos coordenação/conhecimento
+- Updated: 2026-05-28-reset-tentaculos-coordenacao-conhecimento
+
+## [2026-05-28] ops | Topologia coordenação/conhecimento/oráculos ajustada
+- Updated: 2026-05-28-topologia-orquestradores-oraculos-ajustada
+
+## [2026-05-28] ops | Swarm coordenador-raiz sem artefatos de merge
+- Updated: 2026-05-28-swarm-coordenador-raiz-sem-artefatos
+
+## [2026-05-28] ops | Política de aceite de swarm do coordenador-raiz
+- Updated: 2026-05-28-swarm-acceptance-policy-coordenador-raiz
